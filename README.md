@@ -1,73 +1,53 @@
-# Welcome to your Lovable project
+Perfeito, Tony! Aqui vai uma sugestão de um novo README para o seu projeto **sistema-de-analize-de-pontos**, incluindo os créditos às ferramentas utilizadas:
 
-## Project info
+---
 
-**URL**: https://lovable.dev/projects/f67305ec-1fbb-4468-8b5a-3928d1b08756
+# Sistema de Análise de Pontos
 
-## How can I edit this code?
+Este projeto é uma aplicação web desenvolvida com foco em análise de dados de pontos, construída com um stack moderno e experiência de usuário aprimorada.
 
-There are several ways of editing your application.
+🔗 [Acesse o projeto online](https://analize-de-pontos-01.vercel.app)
 
-**Use Lovable**
+## ✨ Funcionalidades
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/f67305ec-1fbb-4468-8b5a-3928d1b08756) and start prompting.
+- Importação e leitura de dados via arquivos CSV
+- Interface interativa e responsiva
+- Visualização dinâmica de dados
+- Navegação fluida com autoatualização
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🚀 Tecnologias utilizadas
 
-**Use your preferred IDE**
+Este projeto foi desenvolvido com as seguintes ferramentas e bibliotecas:
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- [Vite](https://vitejs.dev/) — ambiente de build ultrarrápido
+- [React](https://react.dev/) — biblioteca para criação de interfaces
+- [TypeScript](https://www.typescriptlang.org/) — tipagem estática para JavaScript
+- [Tailwind CSS](https://tailwindcss.com/) — framework utilitário de estilos CSS
+- [shadcn/ui](https://ui.shadcn.dev/) — componentes acessíveis e modernos para React
+- [PapaParse](https://www.papaparse.com/) — parser de arquivos CSV no lado do cliente
+- [Lovable.dev](https://lovable.dev/) — plataforma usada para desenvolvimento e deploy do projeto
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🧪 Como rodar localmente
 
-Follow these steps:
+1. Clone este repositório:
+   ```bash
+   git clone <URL_DO_SEU_REPOSITÓRIO>
+   ```
+2. Instale as dependências:
+   ```bash
+   npm install
+   ```
+3. Inicie o servidor de desenvolvimento:
+   ```bash
+   npm run dev
+   ```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## 📦 Deploy
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+O deploy foi realizado via [Lovable.dev](https://lovable.dev/), que permite edição por prompt e publicação instantânea.
 
-# Step 3: Install the necessary dependencies.
-npm i
+## 🧑‍💻 Créditos
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+Este projeto foi criado por [Tony (@YnotMax)](https://github.com/YnotMax), com apoio das ferramentas e tecnologias citadas acima. Agradecimentos especiais à comunidade open source que torna isso possível.
 
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/f67305ec-1fbb-4468-8b5a-3928d1b08756) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+---
