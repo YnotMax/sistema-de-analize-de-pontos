@@ -19,6 +19,16 @@ export const SearchAndFilters = ({
   onFilterChange,
   availableTags
 }: SearchAndFiltersProps) => {
+  const handleFilterChange = (value: string) => {
+    // Convert "all" back to empty string for the parent component
+    onFilterChange(value === "all" ? "" : value);
+  };
+
+  const handleClear = () => {
+    onSearchChange('');
+    onFilterChange('');
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-sm p-6">
       <div className="flex flex-col sm:flex-row gap-4">
@@ -34,12 +44,12 @@ export const SearchAndFilters = ({
         
         <div className="flex items-center gap-2">
           <Filter className="text-gray-400 w-4 h-4" />
-          <Select value={filterTag} onValueChange={onFilterChange}>
+          <Select value={filterTag || "all"} onValueChange={handleFilterChange}>
             <SelectTrigger className="w-48">
               <SelectValue placeholder="Filtrar por tag" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todas as tags</SelectItem>
+              <SelectItem value="all">Todas as tags</SelectItem>
               {availableTags.sort().map(tag => (
                 <SelectItem key={tag} value={tag}>
                   {tag}
@@ -52,10 +62,7 @@ export const SearchAndFilters = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => {
-                onSearchChange('');
-                onFilterChange('');
-              }}
+              onClick={handleClear}
               className="gap-1"
             >
               <X className="w-3 h-3" />
