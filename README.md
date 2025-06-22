@@ -31,7 +31,7 @@ Este projeto foi desenvolvido com as seguintes ferramentas e bibliotecas:
 
 1. Clone este repositório:
    ```bash
-   git clone <URL_DO_SEU_REPOSITÓRIO>
+   git clone <[URL_DO_SEU_REPOSITÓRIO](https://github.com/YnotMax/sistema-de-analize-de-pontos.git)>
    ```
 2. Instale as dependências:
    ```bash
