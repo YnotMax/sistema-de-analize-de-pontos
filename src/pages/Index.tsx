@@ -35,6 +35,7 @@ const Index = () => {
   };
 
   const handleMultiplePeriodsProcessed = (periods: PeriodoData[], filename: string) => {
+    console.log('Períodos processados:', periods);
     setPeriodosDisponiveis(periods);
     setFileName(filename);
     setError(null);
@@ -45,26 +46,83 @@ const Index = () => {
       const periodoMaisRecente = periods[periods.length - 1];
       setPeriodoAtivo(periodoMaisRecente.id);
       setFuncionarios(periodoMaisRecente.funcionarios);
+      console.log('Período ativo definido:', periodoMaisRecente.id);
     }
   };
 
   const handlePeriodoChange = (periodoId: string) => {
+    console.log('Mudando para período:', periodoId);
     setPeriodoAtivo(periodoId);
     
     if (periodoId === 'todos') {
       // Consolidar todos os funcionários de todos os períodos
-      const todosFuncionarios = periodosDisponiveis.flatMap(periodo => 
-        periodo.funcionarios.map(funcionario => ({
-          ...funcionario,
-          // Adicionar prefixo do período no ID para evitar duplicatas
-          id: parseInt(`${periodo.id.replace(/\D/g, '')}${funcionario.id}`)
-        }))
-      );
-      setFuncionarios(todosFuncionarios);
+      const funcionariosConsolidados: FuncionarioData[] = [];
+      const funcionariosPorMatricula = new Map<string, FuncionarioData>();
+      
+      periodosDisponiveis.forEach((periodo, indicePeriodo) => {
+        console.log(`Processando período ${periodo.nome} com ${periodo.funcionarios.length} funcionários`);
+        
+        periodo.funcionarios.forEach((funcionario) => {
+          const chaveUnica = funcionario.matricula || `sem-matricula-${funcionario.id}-${indicePeriodo}`;
+          
+          if (funcionariosPorMatricula.has(chaveUnica)) {
+            // Funcionário já existe, consolidar dados
+            const funcionarioExistente = funcionariosPorMatricula.get(chaveUnica)!;
+            
+            // Somar contadores
+            Object.entries(funcionario.contadores).forEach(([tag, quantidade]) => {
+              funcionarioExistente.contadores[tag] = (funcionarioExistente.contadores[tag] || 0) + quantidade;
+            });
+            
+            // Somar total de dias
+            funcionarioExistente.totalDias += funcionario.totalDias;
+            
+            // Consolidar dias detalhados com prefixo do período
+            Object.entries(funcionario.diasDetalhados).forEach(([dia, status]) => {
+              const diaComPeriodo = `${periodo.nome}-${dia}`;
+              funcionarioExistente.diasDetalhados[diaComPeriodo] = status;
+            });
+          } else {
+            // Novo funcionário, criar cópia com ID único
+            const funcionarioConsolidado: FuncionarioData = {
+              id: funcionariosConsolidados.length + 1, // ID sequencial único
+              matricula: funcionario.matricula,
+              nome: funcionario.nome,
+              cargo: funcionario.cargo,
+              contadores: { ...funcionario.contadores },
+              totalDias: funcionario.totalDias,
+              diasDetalhados: {}
+            };
+            
+            // Adicionar dias detalhados com prefixo do período
+            Object.entries(funcionario.diasDetalhados).forEach(([dia, status]) => {
+              const diaComPeriodo = `${periodo.nome}-${dia}`;
+              funcionarioConsolidado.diasDetalhados[diaComPeriodo] = status;
+            });
+            
+            funcionariosPorMatricula.set(chaveUnica, funcionarioConsolidado);
+            funcionariosConsolidados.push(funcionarioConsolidado);
+          }
+        });
+      });
+      
+      console.log('Funcionários consolidados:', funcionariosConsolidados.length);
+      setFuncionarios(funcionariosConsolidados);
     } else {
+      // Período específico - buscar dados originais
       const periodo = periodosDisponiveis.find(p => p.id === periodoId);
       if (periodo) {
-        setFuncionarios(periodo.funcionarios);
+        console.log(`Exibindo período ${periodo.nome} com ${periodo.funcionarios.length} funcionários`);
+        // Criar cópia dos dados originais para evitar mutação
+        const funcionariosCopia = periodo.funcionarios.map(f => ({
+          ...f,
+          contadores: { ...f.contadores },
+          diasDetalhados: { ...f.diasDetalhados }
+        }));
+        setFuncionarios(funcionariosCopia);
+      } else {
+        console.error('Período não encontrado:', periodoId);
+        setError(`Período ${periodoId} não encontrado`);
       }
     }
   };

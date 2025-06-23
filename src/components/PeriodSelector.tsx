@@ -21,6 +21,9 @@ export const PeriodSelector = ({
   }
 
   const periodoAtual = periodosDisponiveis.find(p => p.id === periodoAtivo);
+  const totalFuncionariosUnicos = new Set(
+    periodosDisponiveis.flatMap(p => p.funcionarios.map(f => f.matricula || f.id))
+  ).size;
 
   return (
     <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
@@ -34,7 +37,7 @@ export const PeriodSelector = ({
           <div>
             <h3 className="font-semibold text-gray-900">Arquivo Processado</h3>
             <p className="text-sm text-gray-600">
-              📁 {fileName} • {periodosDisponiveis.length} período(s) encontrado(s)
+              📁 {fileName} • {periodosDisponiveis.length} período(s) • {totalFuncionariosUnicos} funcionários únicos
             </p>
           </div>
         </div>
@@ -51,7 +54,7 @@ export const PeriodSelector = ({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">
-                📊 Todos os Períodos
+                📊 Todos os Períodos ({totalFuncionariosUnicos} funcionários)
               </SelectItem>
               {periodosDisponiveis.map(periodo => (
                 <SelectItem key={periodo.id} value={periodo.id}>
@@ -98,7 +101,7 @@ export const PeriodSelector = ({
       )}
 
       {/* Informações do período ativo */}
-      {periodoAtual && (
+      {periodoAtual && periodoAtivo !== 'todos' && (
         <div className="mt-4 pt-4 border-t border-gray-200">
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-600">
@@ -106,6 +109,20 @@ export const PeriodSelector = ({
             </span>
             <span className="text-gray-600">
               {periodoAtual.funcionarios.length} funcionários • {periodoAtual.totalRegistros} registros
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Informações consolidadas */}
+      {periodoAtivo === 'todos' && (
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-600">
+              Visualização: <strong>Todos os Períodos Consolidados</strong>
+            </span>
+            <span className="text-gray-600">
+              {totalFuncionariosUnicos} funcionários únicos • Dados combinados de {periodosDisponiveis.length} períodos
             </span>
           </div>
         </div>
