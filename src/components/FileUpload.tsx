@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { Upload, FileText, AlertCircle } from 'lucide-react';
 import Papa from 'papaparse';
@@ -255,8 +256,14 @@ export const FileUpload = ({
           if (nomeDia && status && status.trim() !== '') {
             const statusLimpo = status.trim();
             
+            // Debug: log para verificar se a tag "1:" está sendo processada
+            if (statusLimpo === '1:') {
+              console.log(`Processando presença normal (1:) para ${funcionario.nome} no dia ${nomeDia}`);
+            }
+            
             funcionario.diasDetalhados[nomeDia] = statusLimpo;
             
+            // Garantir que TODAS as tags sejam contadas, incluindo "1:"
             if (funcionario.contadores[statusLimpo]) {
               funcionario.contadores[statusLimpo]++;
             } else {
@@ -266,6 +273,9 @@ export const FileUpload = ({
             funcionario.totalDias++;
           }
         }
+
+        // Debug: log dos contadores finais do funcionário
+        console.log(`Funcionário ${funcionario.nome} - Contadores:`, funcionario.contadores);
 
         if (funcionario.nome) {
           funcionarios.push(funcionario);
@@ -391,7 +401,7 @@ export const FileUpload = ({
               <li>• <strong>CSV:</strong> Separado por ponto e vírgula (;), encoding UTF-8</li>
               <li>• <strong>Excel:</strong> Múltiplas abas (.xlsx/.xls) - cada aba = um período</li>
               <li>• Colunas: NOME, CARGO e dias do mês</li>
-              <li>• Tags como: 100%, ATESTADO, FÉRIAS, etc.</li>
+              <li>• Tags como: 100%, ATESTADO, FÉRIAS, 1: (presença normal), etc.</li>
             </ul>
           </div>
         </div>
