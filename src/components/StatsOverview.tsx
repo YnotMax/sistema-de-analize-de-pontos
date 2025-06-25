@@ -1,7 +1,6 @@
 
 import { Users, AlertTriangle, Calendar, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { obterNomeAmigavel } from '@/utils/tagMapping';
 
 interface StatsOverviewProps {
   stats: {
@@ -13,11 +12,55 @@ interface StatsOverviewProps {
 }
 
 export const StatsOverview = ({ stats }: StatsOverviewProps) => {
+  // Função para calcular presença normal considerando diferentes variações
+  const calcularPresencaNormal = () => {
+    const tagsPresenca = ['PRESENCA_NORMAL', '1', '1:', 'P', '100%'];
+    let total = 0;
+    
+    tagsPresenca.forEach(tag => {
+      if (stats.contagemTags[tag]) {
+        total += stats.contagemTags[tag];
+      }
+    });
+    
+    console.log('StatsOverview - Cálculo presença normal:', {
+      tagsPresenca,
+      contagemDisponivel: stats.contagemTags,
+      totalCalculado: total
+    });
+    
+    return total;
+  };
+
   const tagsPrincipais = [
-    { tag: 'PRESENCA_NORMAL', label: 'Presença Normal', icon: Calendar, color: 'text-green-600 bg-green-100' },
-    { tag: 'ATESTADO', label: 'Atestados', icon: AlertTriangle, color: 'text-red-600 bg-red-100' },
-    { tag: 'ATRASO', label: 'Atrasos', icon: TrendingUp, color: 'text-yellow-600 bg-yellow-100' },
-    { tag: 'FERIAS', label: 'Férias', icon: Calendar, color: 'text-blue-600 bg-blue-100' }
+    { 
+      tag: 'PRESENCA_NORMAL', 
+      label: 'Presença Normal', 
+      icon: Calendar, 
+      color: 'text-green-600 bg-green-100',
+      valor: calcularPresencaNormal() // Usar função especial para presença
+    },
+    { 
+      tag: 'ATESTADO', 
+      label: 'Atestados', 
+      icon: AlertTriangle, 
+      color: 'text-red-600 bg-red-100',
+      valor: stats.contagemTags['ATESTADO'] || 0
+    },
+    { 
+      tag: 'ATRASO', 
+      label: 'Atrasos', 
+      icon: TrendingUp, 
+      color: 'text-yellow-600 bg-yellow-100',
+      valor: stats.contagemTags['ATRASO'] || 0
+    },
+    { 
+      tag: 'FERIAS', 
+      label: 'Férias', 
+      icon: Calendar, 
+      color: 'text-blue-600 bg-blue-100',
+      valor: stats.contagemTags['FERIAS'] || 0
+    }
   ];
 
   return (
@@ -37,7 +80,7 @@ export const StatsOverview = ({ stats }: StatsOverviewProps) => {
         </CardContent>
       </Card>
 
-      {tagsPrincipais.map(({ tag, label, icon: Icon, color }) => (
+      {tagsPrincipais.map(({ tag, label, icon: Icon, color, valor }) => (
         <Card key={tag}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">
@@ -49,7 +92,7 @@ export const StatsOverview = ({ stats }: StatsOverviewProps) => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-gray-900">
-              {stats.contagemTags[tag] || 0}
+              {valor}
             </div>
             <p className="text-xs text-gray-500 mt-1">
               Total de ocorrências
