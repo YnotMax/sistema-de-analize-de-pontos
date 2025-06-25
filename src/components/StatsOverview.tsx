@@ -1,6 +1,7 @@
 
 import { Users, AlertTriangle, Calendar, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { obterNomeAmigavel } from '@/utils/tagMapping';
 
 interface StatsOverviewProps {
   stats: {
@@ -13,10 +14,10 @@ interface StatsOverviewProps {
 
 export const StatsOverview = ({ stats }: StatsOverviewProps) => {
   const tagsPrincipais = [
-    { tag: '100%', label: 'Presença Normal', icon: Calendar, color: 'text-green-600 bg-green-100' },
+    { tag: 'PRESENCA_NORMAL', label: 'Presença Normal', icon: Calendar, color: 'text-green-600 bg-green-100' },
     { tag: 'ATESTADO', label: 'Atestados', icon: AlertTriangle, color: 'text-red-600 bg-red-100' },
-    { tag: '100% (C/ ATRASO)', label: 'Atrasos', icon: TrendingUp, color: 'text-yellow-600 bg-yellow-100' },
-    { tag: 'FÉRIAS', label: 'Férias', icon: Calendar, color: 'text-blue-600 bg-blue-100' }
+    { tag: 'ATRASO', label: 'Atrasos', icon: TrendingUp, color: 'text-yellow-600 bg-yellow-100' },
+    { tag: 'FERIAS', label: 'Férias', icon: Calendar, color: 'text-blue-600 bg-blue-100' }
   ];
 
   return (

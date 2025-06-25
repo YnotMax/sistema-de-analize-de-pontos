@@ -1,9 +1,9 @@
-
 import { useState, useCallback } from 'react';
 import { Upload, FileText, AlertCircle } from 'lucide-react';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { FuncionarioData } from '@/pages/Index';
+import { normalizarTag } from '@/utils/tagMapping';
 
 export interface PeriodoData {
   id: string;
@@ -87,17 +87,24 @@ export const FileUpload = ({
 
           for (let j = indiceDias; j < linha.length && j < cabecalho.length; j++) {
             const nomeDia = cabecalho[j];
-            const status = linha[j];
+            const statusOriginal = linha[j];
 
-            if (nomeDia && status && status.toString().trim() !== '') {
-              const statusLimpo = status.toString().trim();
+            if (nomeDia && statusOriginal && statusOriginal.toString().trim() !== '') {
+              const statusLimpo = statusOriginal.toString().trim();
               
+              // APLICAR MAPEAMENTO DE TAGS
+              const statusNormalizado = normalizarTag(statusLimpo);
+              
+              console.log(`Tag original: "${statusLimpo}" -> Tag normalizada: "${statusNormalizado}"`);
+              
+              // Armazenar o status original nos detalhes
               funcionario.diasDetalhados[nomeDia] = statusLimpo;
               
-              if (funcionario.contadores[statusLimpo]) {
-                funcionario.contadores[statusLimpo]++;
+              // Usar a tag NORMALIZADA para os contadores
+              if (funcionario.contadores[statusNormalizado]) {
+                funcionario.contadores[statusNormalizado]++;
               } else {
-                funcionario.contadores[statusLimpo] = 1;
+                funcionario.contadores[statusNormalizado] = 1;
               }
               
               funcionario.totalDias++;
@@ -111,6 +118,7 @@ export const FileUpload = ({
       }
 
       console.log('Funcionários processados:', funcionarios.length);
+      console.log('Exemplo de contadores normalizados:', funcionarios[0]?.contadores);
 
       if (funcionarios.length === 0) {
         throw new Error('Nenhum funcionário encontrado. Verifique o formato do arquivo.');
@@ -251,31 +259,31 @@ export const FileUpload = ({
         // Processar cada dia do mês
         for (let j = indiceDias; j < linha.length && j < cabecalho.length; j++) {
           const nomeDia = cabecalho[j]?.toString();
-          const status = linha[j]?.toString();
+          const statusOriginal = linha[j]?.toString();
 
-          if (nomeDia && status && status.trim() !== '') {
-            const statusLimpo = status.trim();
+          if (nomeDia && statusOriginal && statusOriginal.trim() !== '') {
+            const statusLimpo = statusOriginal.trim();
             
-            // Debug: log para verificar se a tag "1:" está sendo processada
-            if (statusLimpo === '1:') {
-              console.log(`Processando presença normal (1:) para ${funcionario.nome} no dia ${nomeDia}`);
-            }
+            // APLICAR MAPEAMENTO DE TAGS
+            const statusNormalizado = normalizarTag(statusLimpo);
             
+            console.log(`[${nomeAba}] ${funcionario.nome} - Tag original: "${statusLimpo}" -> Tag normalizada: "${statusNormalizado}"`);
+            
+            // Armazenar o status original nos detalhes
             funcionario.diasDetalhados[nomeDia] = statusLimpo;
             
-            // Garantir que TODAS as tags sejam contadas, incluindo "1:"
-            if (funcionario.contadores[statusLimpo]) {
-              funcionario.contadores[statusLimpo]++;
+            // Usar a tag NORMALIZADA para os contadores
+            if (funcionario.contadores[statusNormalizado]) {
+              funcionario.contadores[statusNormalizado]++;
             } else {
-              funcionario.contadores[statusLimpo] = 1;
+              funcionario.contadores[statusNormalizado] = 1;
             }
             
             funcionario.totalDias++;
           }
         }
 
-        // Debug: log dos contadores finais do funcionário
-        console.log(`Funcionário ${funcionario.nome} - Contadores:`, funcionario.contadores);
+        console.log(`[${nomeAba}] ${funcionario.nome} - Contadores finais:`, funcionario.contadores);
 
         if (funcionario.nome) {
           funcionarios.push(funcionario);
