@@ -1,68 +1,12 @@
 
 import * as XLSX from 'xlsx';
-import { FuncionarioData } from '@/pages/Index';
-import { processarArquivoXLSX, DadosUnificadosXLSX, ColaboradorInfo } from '@/utils/xlsxProcessor';
-import { calcularContadoresDeFrequencia } from '@/utils/frequenciaProcessor';
+import { processarArquivoXLSX, DadosUnificadosXLSX } from '@/utils/xlsxProcessor';
+import { parsePlanilhaBanco } from '@/utils/excel/bancoSheetParser';
+import { processarAbaFrequencia } from '@/utils/excel/sheetProcessor';
+import { PeriodoData } from '@/utils/excel/types';
 
-export interface PeriodoData {
-  id: string;
-  nome: string;
-  funcionarios: FuncionarioData[];
-  totalRegistros: number;
-  dataProcessamento: Date;
-}
-
-/**
- * Realiza o parsing da aba "BANCO" para extrair a lista oficial de colaboradores.
- * @param sheet A planilha (worksheet) a ser processada.
- * @returns Um Map contendo os colaboradores, com a matrícula como chave.
- */
-function parsePlanilhaBanco(sheet: XLSX.WorkSheet): Map<string, ColaboradorInfo> {
-  const dadosJson = XLSX.utils.sheet_to_json<any[]>(sheet, { header: 1, defval: "" });
-  const mapaColaboradores = new Map<string, ColaboradorInfo>();
-
-  // 1. Encontrar o cabeçalho dinamicamente
-  const indiceCabecalho = dadosJson.findIndex(row => 
-    row.includes('MATRICULA') && row.includes('NOME')
-  );
-
-  if (indiceCabecalho === -1) {
-    console.error("[parsePlanilhaBanco] Erro: Cabeçalho não encontrado na aba BANCO.");
-    return mapaColaboradores;
-  }
-
-  // 2. Mapear as colunas a partir do cabeçalho
-  const cabecalho = dadosJson[indiceCabecalho];
-  const colMatricula = cabecalho.indexOf('MATRICULA');
-  const colNome = cabecalho.indexOf('NOME');
-  const colCargo = cabecalho.indexOf('CARGO');
-  const colDataAdmissao = cabecalho.indexOf('ADMISSÃO');
-
-  // 3. Iterar sobre as linhas de dados
-  for (let i = indiceCabecalho + 1; i < dadosJson.length; i++) {
-    const linha = dadosJson[i];
-    const matricula = linha[colMatricula]?.toString().trim();
-
-    if (matricula && /^\d+$/.test(matricula)) { // Garante que a matrícula é um número
-      // Formata a data de admissão se ela for um objeto Date
-      let dataAdmissaoFormatada = linha[colDataAdmissao];
-      if (dataAdmissaoFormatada instanceof Date) {
-        dataAdmissaoFormatada = dataAdmissaoFormatada.toLocaleDateString('pt-BR');
-      }
-
-      const colaborador: ColaboradorInfo = {
-        matricula,
-        nome: linha[colNome] || 'N/A',
-        cargo: linha[colCargo] || 'Cargo não informado',
-        dataAdmissao: dataAdmissaoFormatada,
-      };
-      mapaColaboradores.set(matricula, colaborador);
-    }
-  }
-  
-  console.log(`[parsePlanilhaBanco] Processamento concluído. ${mapaColaboradores.size} colaboradores encontrados na aba BANCO.`);
-  return mapaColaboradores;
-}
+// Re-export types for backward compatibility
+export type { PeriodoData } from '@/utils/excel/types';
 
 /**
  * Função principal atualizada para processar a aba BANCO.
@@ -150,29 +94,11 @@ export const processarExcel = async (file: File): Promise<PeriodoData[]> => {
   const periodosDisponiveis: PeriodoData[] = [];
 
   abas.forEach(nomeAba => {
-    try {
-      const planilha = workbook.Sheets[nomeAba];
-      
-      // Converter para array de arrays
-      const dadosArray = XLSX.utils.sheet_to_json(planilha, {
-        header: 1,
-        defval: ''
-      }) as string[][];
-
-      // Usar a função genérica para processar os dados
-      const funcionarios = calcularContadoresDeFrequencia(dadosArray, nomeAba);
-
-      if (funcionarios.length > 0) {
-        periodosDisponiveis.push({
-          id: nomeAba.toLowerCase().replace(/\s+/g, '-'),
-          nome: nomeAba,
-          funcionarios,
-          totalRegistros: funcionarios.reduce((total, f) => total + f.totalDias, 0),
-          dataProcessamento: new Date()
-        });
-      }
-    } catch (error) {
-      console.warn(`Erro ao processar aba ${nomeAba}:`, error);
+    const planilha = workbook.Sheets[nomeAba];
+    const periodo = processarAbaFrequencia(planilha, nomeAba);
+    
+    if (periodo) {
+      periodosDisponiveis.push(periodo);
     }
   });
 
@@ -183,5 +109,3 @@ export const processarExcel = async (file: File): Promise<PeriodoData[]> => {
   console.log('Períodos processados:', periodosDisponiveis.length);
   return periodosDisponiveis;
 };
-
-// Função removida: processarDadosAba - agora usamos calcularContadoresDeFrequencia

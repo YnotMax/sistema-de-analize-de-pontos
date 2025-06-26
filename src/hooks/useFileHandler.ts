@@ -1,8 +1,8 @@
-
 import { useState, useCallback } from 'react';
 import { FuncionarioData } from '@/pages/Index';
 import { processarCSV } from '@/utils/csvProcessor';
-import { processarExcel, PeriodoData, processarArquivoXLSXBanco } from '@/utils/excelProcessor';
+import { processarExcel, processarArquivoXLSXBanco } from '@/utils/excelProcessor';
+import { PeriodoData } from '@/utils/excel/types';
 import { DadosUnificadosXLSX } from '@/utils/xlsxProcessor';
 
 interface UseFileHandlerProps {

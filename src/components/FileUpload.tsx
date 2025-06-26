@@ -3,14 +3,7 @@ import { FuncionarioData } from '@/pages/Index';
 import { useFileHandler } from '@/hooks/useFileHandler';
 import { FileDropZone } from './FileUpload/FileDropZone';
 import { FileFormatInfo } from './FileUpload/FileFormatInfo';
-
-export interface PeriodoData {
-  id: string;
-  nome: string;
-  funcionarios: FuncionarioData[];
-  totalRegistros: number;
-  dataProcessamento: Date;
-}
+import { PeriodoData } from '@/utils/excel/types';
 
 interface FileUploadProps {
   onFileProcessed: (data: FuncionarioData[], filename: string) => void;
