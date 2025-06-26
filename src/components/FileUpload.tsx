@@ -4,6 +4,7 @@ import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { FuncionarioData } from '@/pages/Index';
 import { normalizarTag } from '@/utils/tagMapping';
+import { processarArquivoXLSX, DadosUnificadosXLSX } from '@/utils/xlsxProcessor';
 
 export interface PeriodoData {
   id: string;
@@ -138,8 +139,29 @@ export const FileUpload = ({
       console.log('Iniciando processamento do Excel...');
       
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         try {
+          // Verificar se devemos usar o novo processador para arquivos .xlsx com aba LISTA
+          if (file.name.toLowerCase().endsWith('.xlsx')) {
+            try {
+              // Tentar usar o novo processador de XLSX primeiro
+              const dadosUnificados: DadosUnificadosXLSX = await processarArquivoXLSX(file);
+              
+              // CRITÉRIO DE ACEITE: Exibe os dados extraídos no console para verificação
+              console.log("DADOS MESTRE EXTRAÍDOS DO XLSX:", dadosUnificados);
+              console.log("Mapa de Colaboradores:", dadosUnificados.colaboradores);
+              
+              // Se conseguiu extrair colaboradores, exibe no console e continua com o processamento normal
+              if (dadosUnificados.colaboradores.size > 0) {
+                console.log(`[FileUpload] Encontrados ${dadosUnificados.colaboradores.size} colaboradores na aba LISTA.`);
+                // Aqui você pode adicionar lógica adicional se necessário
+              }
+            } catch (xlsxError) {
+              console.warn('[FileUpload] Erro ao processar com xlsxProcessor, continuando com método tradicional:', xlsxError);
+            }
+          }
+
+          // Continuar com o processamento normal para as abas de frequência
           const workbook = XLSX.read(e.target?.result, {
             type: 'binary',
             cellStyles: true,
@@ -410,6 +432,7 @@ export const FileUpload = ({
               <li>• <strong>Excel:</strong> Múltiplas abas (.xlsx/.xls) - cada aba = um período</li>
               <li>• Colunas: NOME, CARGO e dias do mês</li>
               <li>• Tags como: 100%, ATESTADO, FÉRIAS, 1: (presença normal), etc.</li>
+              <li>• <strong>Novo:</strong> Arquivos .xlsx com aba "LISTA DE COLABORADORES" são processados automaticamente</li>
             </ul>
           </div>
         </div>
