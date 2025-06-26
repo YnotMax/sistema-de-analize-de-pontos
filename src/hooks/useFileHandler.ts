@@ -1,7 +1,9 @@
+
 import { useState, useCallback } from 'react';
 import { FuncionarioData } from '@/pages/Index';
 import { processarCSV } from '@/utils/csvProcessor';
-import { processarExcel, PeriodoData, processarArquivoXLSXBanco, DadosUnificadosXLSX } from '@/utils/excelProcessor';
+import { processarExcel, PeriodoData, processarArquivoXLSXBanco } from '@/utils/excelProcessor';
+import { DadosUnificadosXLSX } from '@/utils/xlsxProcessor';
 
 interface UseFileHandlerProps {
   onFileProcessed: (data: FuncionarioData[], filename: string) => void;
