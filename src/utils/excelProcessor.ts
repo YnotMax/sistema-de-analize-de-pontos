@@ -1,4 +1,3 @@
-
 import * as XLSX from 'xlsx';
 import { FuncionarioData } from '@/pages/Index';
 import { normalizarTag } from '@/utils/tagMapping';
@@ -12,26 +11,130 @@ export interface PeriodoData {
   dataProcessamento: Date;
 }
 
+// Nova interface para dados do colaborador da aba BANCO
+export interface ColaboradorInfo {
+  matricula: string;
+  nome: string;
+  idade?: number;
+  lider?: string;
+}
+
+// Interface principal para dados unificados do XLSX
+export interface DadosUnificadosXLSX {
+  colaboradores: Map<string, ColaboradorInfo>;
+}
+
+/**
+ * Realiza o parsing da aba "BANCO" para extrair a lista oficial de colaboradores.
+ * @param sheet A planilha (worksheet) a ser processada.
+ * @returns Um Map contendo os colaboradores, com a matrícula como chave.
+ */
+function parsePlanilhaBanco(sheet: XLSX.WorkSheet): Map<string, ColaboradorInfo> {
+  const dadosJson = XLSX.utils.sheet_to_json<any[]>(sheet, { header: 1, defval: "" });
+  const mapaColaboradores = new Map<string, ColaboradorInfo>();
+
+  // 1. Encontrar o cabeçalho dinamicamente
+  const indiceCabecalho = dadosJson.findIndex(row => 
+    row.includes('MATRICULA') && row.includes('NOME')
+  );
+
+  if (indiceCabecalho === -1) {
+    console.error("[parsePlanilhaBanco] Erro: Cabeçalho não encontrado na aba BANCO.");
+    return mapaColaboradores;
+  }
+
+  // 2. Mapear as colunas a partir do cabeçalho
+  const cabecalho = dadosJson[indiceCabecalho];
+  const colMatricula = cabecalho.indexOf('MATRICULA');
+  const colNome = cabecalho.indexOf('NOME');
+  const colIdade = cabecalho.indexOf('IDADE');
+  const colLider = cabecalho.indexOf('LIDER');
+
+  // 3. Iterar sobre as linhas de dados
+  for (let i = indiceCabecalho + 1; i < dadosJson.length; i++) {
+    const linha = dadosJson[i];
+    const matricula = linha[colMatricula]?.toString().trim();
+
+    if (matricula && /^\d+$/.test(matricula)) { // Garante que a matrícula é um número
+      const colaborador: ColaboradorInfo = {
+        matricula,
+        nome: linha[colNome] || 'N/A',
+        idade: linha[colIdade] ? parseInt(linha[colIdade], 10) : undefined,
+        lider: linha[colLider] || undefined,
+      };
+      mapaColaboradores.set(matricula, colaborador);
+    }
+  }
+  
+  console.log(`[parsePlanilhaBanco] Processamento concluído. ${mapaColaboradores.size} colaboradores encontrados na aba BANCO.`);
+  return mapaColaboradores;
+}
+
+/**
+ * Função principal atualizada para processar a aba BANCO.
+ */
+export async function processarArquivoXLSXBanco(file: File): Promise<DadosUnificadosXLSX> {
+  const data = await file.arrayBuffer();
+  const workbook = XLSX.read(data, { type: 'array' });
+
+  const resultado: DadosUnificadosXLSX = {
+    colaboradores: new Map(),
+  };
+
+  for (const sheetName of workbook.SheetNames) {
+    const nomeAba = sheetName.toUpperCase();
+    const sheet = workbook.Sheets[sheetName];
+
+    // Lógica de roteamento para chamar o parser da aba BANCO
+    if (nomeAba.includes('BANCO')) {
+      console.log(`[processarArquivoXLSXBanco] Encontrada aba de Colaboradores: "${sheetName}".`);
+      resultado.colaboradores = parsePlanilhaBanco(sheet);
+      // Podemos parar aqui por enquanto, já que a lista mestra é o mais importante
+      break; 
+    }
+  }
+
+  if (resultado.colaboradores.size === 0) {
+      throw new Error("Não foi possível encontrar a aba 'BANCO' com a lista de colaboradores no arquivo.");
+  }
+
+  return resultado;
+}
+
 export const processarExcel = async (file: File): Promise<PeriodoData[]> => {
   console.log('Iniciando processamento do Excel...');
   
-  // Verificar se devemos usar o novo processador para arquivos .xlsx com aba LISTA
+  // Verificar se devemos usar o novo processador para arquivos .xlsx com aba BANCO
   if (file.name.toLowerCase().endsWith('.xlsx')) {
     try {
-      // Tentar usar o novo processador de XLSX primeiro
-      const dadosUnificados: DadosUnificadosXLSX = await processarArquivoXLSX(file);
+      // Tentar usar o processador da aba BANCO primeiro
+      const dadosUnificados: DadosUnificadosXLSX = await processarArquivoXLSXBanco(file);
       
       // CRITÉRIO DE ACEITE: Exibe os dados extraídos no console para verificação
-      console.log("DADOS MESTRE EXTRAÍDOS DO XLSX:", dadosUnificados);
+      console.log("DADOS MESTRE EXTRAÍDOS DA ABA BANCO:", dadosUnificados);
       console.log("Mapa de Colaboradores:", dadosUnificados.colaboradores);
       
-      // Se conseguiu extrair colaboradores, exibe no console e continua com o processamento normal
+      // Se conseguiu extrair colaboradores, exibe no console
       if (dadosUnificados.colaboradores.size > 0) {
-        console.log(`[ExcelProcessor] Encontrados ${dadosUnificados.colaboradores.size} colaboradores na aba LISTA.`);
-        // Aqui você pode adicionar lógica adicional se necessário
+        console.log(`[ExcelProcessor] Encontrados ${dadosUnificados.colaboradores.size} colaboradores na aba BANCO.`);
       }
-    } catch (xlsxError) {
-      console.warn('[ExcelProcessor] Erro ao processar com xlsxProcessor, continuando com método tradicional:', xlsxError);
+    } catch (bancoError) {
+      console.warn('[ExcelProcessor] Erro ao processar aba BANCO, tentando processador LISTA:', bancoError);
+      
+      // Se falhar com BANCO, tentar com LISTA
+      try {
+        const dadosUnificados: DadosUnificadosXLSX = await processarArquivoXLSX(file);
+        
+        // CRITÉRIO DE ACEITE: Exibe os dados extraídos no console para verificação
+        console.log("DADOS MESTRE EXTRAÍDOS DO XLSX:", dadosUnificados);
+        console.log("Mapa de Colaboradores:", dadosUnificados.colaboradores);
+        
+        if (dadosUnificados.colaboradores.size > 0) {
+          console.log(`[ExcelProcessor] Encontrados ${dadosUnificados.colaboradores.size} colaboradores na aba LISTA.`);
+        }
+      } catch (xlsxError) {
+        console.warn('[ExcelProcessor] Erro ao processar com xlsxProcessor, continuando com método tradicional:', xlsxError);
+      }
     }
   }
 

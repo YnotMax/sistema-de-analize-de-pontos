@@ -1,12 +1,12 @@
-
 import { useState, useCallback } from 'react';
 import { FuncionarioData } from '@/pages/Index';
 import { processarCSV } from '@/utils/csvProcessor';
-import { processarExcel, PeriodoData } from '@/utils/excelProcessor';
+import { processarExcel, PeriodoData, processarArquivoXLSXBanco, DadosUnificadosXLSX } from '@/utils/excelProcessor';
 
 interface UseFileHandlerProps {
   onFileProcessed: (data: FuncionarioData[], filename: string) => void;
   onMultiplePeriodsProcessed: (periods: PeriodoData[], filename: string) => void;
+  onXlsxDataLoaded?: (data: DadosUnificadosXLSX) => void;
   onProcessingStart: () => void;
   onProcessingEnd: () => void;
   onError: (error: string) => void;
@@ -15,6 +15,7 @@ interface UseFileHandlerProps {
 export const useFileHandler = ({
   onFileProcessed,
   onMultiplePeriodsProcessed,
+  onXlsxDataLoaded,
   onProcessingStart,
   onProcessingEnd,
   onError
@@ -50,21 +51,60 @@ export const useFileHandler = ({
     } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
       onProcessingStart();
       
-      processarExcel(file)
-        .then(periodosDisponiveis => {
-          onMultiplePeriodsProcessed(periodosDisponiveis, file.name);
-        })
-        .catch(error => {
-          console.error('Erro ao processar Excel:', error);
-          onError(error instanceof Error ? error.message : 'Erro ao processar arquivo Excel');
-        })
-        .finally(() => {
-          onProcessingEnd();
-        });
+      // Primeiro, tentar processar a aba BANCO para dados mestres
+      if (fileName.endsWith('.xlsx')) {
+        processarArquivoXLSXBanco(file)
+          .then(dadosUnificados => {
+            // CRITÉRIO DE ACEITE: Exibe os dados no console
+            console.log("Hook 'useFileHandler' recebeu os dados processados da aba BANCO:", dadosUnificados);
+            
+            // Usa o callback para enviar os dados para o componente pai
+            if (onXlsxDataLoaded) {
+              onXlsxDataLoaded(dadosUnificados);
+            }
+            
+            // Continuar com processamento normal das abas de frequência
+            return processarExcel(file);
+          })
+          .then(periodosDisponiveis => {
+            onMultiplePeriodsProcessed(periodosDisponiveis, file.name);
+          })
+          .catch(error => {
+            console.error('Erro ao processar Excel:', error);
+            // Se falhar com BANCO, tentar processamento normal
+            processarExcel(file)
+              .then(periodosDisponiveis => {
+                onMultiplePeriodsProcessed(periodosDisponiveis, file.name);
+              })
+              .catch(fallbackError => {
+                console.error('Erro no processamento fallback:', fallbackError);
+                onError(fallbackError instanceof Error ? fallbackError.message : 'Erro ao processar arquivo Excel');
+              })
+              .finally(() => {
+                onProcessingEnd();
+              });
+          })
+          .finally(() => {
+            onProcessingEnd();
+          });
+      } else {
+        // Para arquivos .xls, usar apenas o processamento normal
+        processarExcel(file)
+          .then(periodosDisponiveis => {
+            onMultiplePeriodsProcessed(periodosDisponiveis, file.name);
+          })
+          .catch(error => {
+            console.error('Erro ao processar Excel:', error);
+            onError(error instanceof Error ? error.message : 'Erro ao processar arquivo Excel');
+          })
+          .finally(() => {
+            onProcessingEnd();
+          });
+      }
     } else {
       onError('Por favor, selecione um arquivo CSV ou Excel válido.');
     }
-  }, [onFileProcessed, onMultiplePeriodsProcessed, onProcessingStart, onProcessingEnd, onError]);
+  }, [onFileProcessed, onMultiplePeriodsProcessed, onXlsxDataLoaded, onProcessingStart, onProcessingEnd, onError]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
