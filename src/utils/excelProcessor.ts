@@ -1,7 +1,7 @@
 import * as XLSX from 'xlsx';
 import { FuncionarioData } from '@/pages/Index';
 import { normalizarTag } from '@/utils/tagMapping';
-import { processarArquivoXLSX, DadosUnificadosXLSX } from '@/utils/xlsxProcessor';
+import { processarArquivoXLSX, DadosUnificadosXLSX, ColaboradorInfo } from '@/utils/xlsxProcessor';
 
 export interface PeriodoData {
   id: string;
@@ -9,19 +9,6 @@ export interface PeriodoData {
   funcionarios: FuncionarioData[];
   totalRegistros: number;
   dataProcessamento: Date;
-}
-
-// Nova interface para dados do colaborador da aba BANCO
-export interface ColaboradorInfo {
-  matricula: string;
-  nome: string;
-  idade?: number;
-  lider?: string;
-}
-
-// Interface principal para dados unificados do XLSX
-export interface DadosUnificadosXLSX {
-  colaboradores: Map<string, ColaboradorInfo>;
 }
 
 /**
@@ -47,8 +34,8 @@ function parsePlanilhaBanco(sheet: XLSX.WorkSheet): Map<string, ColaboradorInfo>
   const cabecalho = dadosJson[indiceCabecalho];
   const colMatricula = cabecalho.indexOf('MATRICULA');
   const colNome = cabecalho.indexOf('NOME');
-  const colIdade = cabecalho.indexOf('IDADE');
-  const colLider = cabecalho.indexOf('LIDER');
+  const colCargo = cabecalho.indexOf('CARGO');
+  const colDataAdmissao = cabecalho.indexOf('ADMISSÃO');
 
   // 3. Iterar sobre as linhas de dados
   for (let i = indiceCabecalho + 1; i < dadosJson.length; i++) {
@@ -56,11 +43,17 @@ function parsePlanilhaBanco(sheet: XLSX.WorkSheet): Map<string, ColaboradorInfo>
     const matricula = linha[colMatricula]?.toString().trim();
 
     if (matricula && /^\d+$/.test(matricula)) { // Garante que a matrícula é um número
+      // Formata a data de admissão se ela for um objeto Date
+      let dataAdmissaoFormatada = linha[colDataAdmissao];
+      if (dataAdmissaoFormatada instanceof Date) {
+        dataAdmissaoFormatada = dataAdmissaoFormatada.toLocaleDateString('pt-BR');
+      }
+
       const colaborador: ColaboradorInfo = {
         matricula,
         nome: linha[colNome] || 'N/A',
-        idade: linha[colIdade] ? parseInt(linha[colIdade], 10) : undefined,
-        lider: linha[colLider] || undefined,
+        cargo: linha[colCargo] || 'Cargo não informado',
+        dataAdmissao: dataAdmissaoFormatada,
       };
       mapaColaboradores.set(matricula, colaborador);
     }
