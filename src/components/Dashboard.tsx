@@ -3,6 +3,7 @@ import { useState, useMemo } from 'react';
 import { FuncionarioData } from '@/pages/Index';
 import { StatsOverview as OldStatsOverview } from './StatsOverview';
 import { StatsOverview } from './Dashboard/StatsOverview';
+import { OccurrenceChart } from './Dashboard/OccurrenceChart';
 import { FuncionariosList } from './FuncionariosList';
 import { SearchAndFilters } from './SearchAndFilters';
 import { Button } from '@/components/ui/button';
@@ -84,6 +85,21 @@ export const Dashboard = ({ funcionarios, funcionariosUnificados, fileName, onRe
         </div>
       ) : (
         <OldStatsOverview stats={stats} />
+      )}
+
+      {/* Nova Seção de Análise de Frequência com Gráfico */}
+      {funcionariosUnificados && funcionariosUnificados.length > 0 && (
+        <div>
+          <h3 className="text-xl font-bold mb-4 text-gray-900">Análise de Frequência</h3>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+            <div className="col-span-1 lg:col-span-4">
+              <OccurrenceChart funcionarios={funcionariosUnificados} />
+            </div>
+            <div className="col-span-1 lg:col-span-3">
+              {/* Espaço para o próximo gráfico, como o Ranking de Funcionários */}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Busca e filtros */}
