@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from 'react';
 import { FuncionarioData } from '@/pages/Index';
 import { StatsOverview as OldStatsOverview } from './StatsOverview';
@@ -18,7 +19,7 @@ interface DashboardProps {
 
 export const Dashboard = ({ funcionarios, funcionariosUnificados, fileName, onReset }: DashboardProps) => {
   // Debug logs para verificar os dados recebidos
-  console.log("🔍 [Dashboard] Recebeu props:", {
+  console.log("🔍 [DEBUG] Dashboard recebeu props:", {
     funcionarios: funcionarios?.length || 0,
     funcionariosUnificados: funcionariosUnificados?.length || 0,
     fileName
@@ -27,23 +28,9 @@ export const Dashboard = ({ funcionarios, funcionariosUnificados, fileName, onRe
   const [searchTerm, setSearchTerm] = useState('');
   const [filterTag, setFilterTag] = useState<string>('');
 
-  // Determinar qual conjunto de dados usar
-  const dadosParaExibir = funcionariosUnificados && funcionariosUnificados.length > 0 
-    ? funcionariosUnificados 
-    : funcionarios;
-
-  const tipoDeExibicao = funcionariosUnificados && funcionariosUnificados.length > 0 
-    ? 'unificados' 
-    : 'normais';
-
-  console.log("🔍 [Dashboard] Tipo de exibição:", tipoDeExibicao);
-  console.log("🔍 [Dashboard] Dados para exibir:", dadosParaExibir?.length || 0);
-
   // Filtrar funcionários baseado na busca e filtros
   const funcionariosFiltrados = useMemo(() => {
-    if (!dadosParaExibir || dadosParaExibir.length === 0) return [];
-    
-    return dadosParaExibir.filter(funcionario => {
+    return funcionarios.filter(funcionario => {
       const matchesSearch = funcionario.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            funcionario.cargo.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            funcionario.matricula.includes(searchTerm);
@@ -52,23 +39,14 @@ export const Dashboard = ({ funcionarios, funcionariosUnificados, fileName, onRe
       
       return matchesSearch && matchesFilter;
     });
-  }, [dadosParaExibir, searchTerm, filterTag]);
+  }, [funcionarios, searchTerm, filterTag]);
 
   // Estatísticas gerais para fallback (dados legados)
   const stats = useMemo(() => {
-    if (!dadosParaExibir || dadosParaExibir.length === 0) {
-      return {
-        totalFuncionarios: 0,
-        todasTags: [],
-        contagemTags: {},
-        funcionariosMaisAtestados: []
-      };
-    }
-
     const todasTags = new Set<string>();
     const contagemTags: Record<string, number> = {};
     
-    dadosParaExibir.forEach((funcionario) => {
+    funcionarios.forEach((funcionario) => {
       Object.keys(funcionario.contadores).forEach(tag => {
         todasTags.add(tag);
         contagemTags[tag] = (contagemTags[tag] || 0) + funcionario.contadores[tag];
@@ -76,15 +54,15 @@ export const Dashboard = ({ funcionarios, funcionariosUnificados, fileName, onRe
     });
 
     return {
-      totalFuncionarios: dadosParaExibir.length,
+      totalFuncionarios: funcionarios.length,
       todasTags: Array.from(todasTags),
       contagemTags,
-      funcionariosMaisAtestados: dadosParaExibir
+      funcionariosMaisAtestados: funcionarios
         .filter(f => f.contadores['ATESTADO'] > 0)
         .sort((a, b) => (b.contadores['ATESTADO'] || 0) - (a.contadores['ATESTADO'] || 0))
         .slice(0, 5)
     };
-  }, [dadosParaExibir]);
+  }, [funcionarios]);
 
   return (
     <div className="space-y-8">
@@ -97,11 +75,6 @@ export const Dashboard = ({ funcionarios, funcionariosUnificados, fileName, onRe
             </h2>
             <p className="text-gray-600">
               Analisando o arquivo: <span className="font-medium">{fileName}</span> • {stats.totalFuncionarios} funcionários
-              {tipoDeExibicao === 'unificados' && (
-                <span className="ml-2 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                  Dados Unificados
-                </span>
-              )}
             </p>
           </div>
           <Button onClick={onReset} variant="outline" className="gap-2">
@@ -119,7 +92,7 @@ export const Dashboard = ({ funcionarios, funcionariosUnificados, fileName, onRe
         </div>
       ) : (
         <div>
-          <h3 className="text-xl font-bold mb-4 text-gray-900">Visão Geral</h3>
+          <h3 className="text-xl font-bold mb-4 text-gray-900">Visão Geral (Fallback)</h3>
           <OldStatsOverview stats={stats} />
         </div>
       )}
