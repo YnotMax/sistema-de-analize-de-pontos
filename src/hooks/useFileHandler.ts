@@ -7,6 +7,7 @@ import { DadosUnificadosXLSX } from '@/utils/xlsxProcessor';
 
 interface UseFileHandlerProps {
   onFileProcessed: (data: FuncionarioData[], filename: string) => void;
+  onUnifiedDataProcessed: (data: FuncionarioUnificado[], filename: string) => void;
   onMultiplePeriodsProcessed: (periods: PeriodoData[], filename: string) => void;
   onXlsxDataLoaded?: (data: DadosUnificadosXLSX) => void;
   onUnifiedDataLoaded?: (data: FuncionarioUnificado[]) => void;
@@ -17,6 +18,7 @@ interface UseFileHandlerProps {
 
 export const useFileHandler = ({
   onFileProcessed,
+  onUnifiedDataProcessed,
   onMultiplePeriodsProcessed,
   onXlsxDataLoaded,
   onUnifiedDataLoaded,
@@ -116,7 +118,7 @@ export const useFileHandler = ({
     } else {
       onError('Por favor, selecione um arquivo CSV ou Excel válido.');
     }
-  }, [onFileProcessed, onMultiplePeriodsProcessed, onXlsxDataLoaded, onUnifiedDataLoaded, onProcessingStart, onProcessingEnd, onError]);
+  }, [onFileProcessed, onUnifiedDataProcessed, onMultiplePeriodsProcessed, onXlsxDataLoaded, onUnifiedDataLoaded, onProcessingStart, onProcessingEnd, onError]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
