@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { FuncionarioData } from '@/pages/Index';
 import { processarCSV } from '@/utils/csvProcessor';
-import { processarExcel, processarArquivoXLSXBanco } from '@/utils/excelProcessor';
+import { processarExcel, processarArquivoXLSXBanco, FuncionarioUnificado } from '@/utils/excelProcessor';
 import { PeriodoData } from '@/utils/excel/types';
 import { DadosUnificadosXLSX } from '@/utils/xlsxProcessor';
 
@@ -9,6 +9,7 @@ interface UseFileHandlerProps {
   onFileProcessed: (data: FuncionarioData[], filename: string) => void;
   onMultiplePeriodsProcessed: (periods: PeriodoData[], filename: string) => void;
   onXlsxDataLoaded?: (data: DadosUnificadosXLSX) => void;
+  onUnifiedDataLoaded?: (data: FuncionarioUnificado[]) => void;
   onProcessingStart: () => void;
   onProcessingEnd: () => void;
   onError: (error: string) => void;
@@ -18,6 +19,7 @@ export const useFileHandler = ({
   onFileProcessed,
   onMultiplePeriodsProcessed,
   onXlsxDataLoaded,
+  onUnifiedDataLoaded,
   onProcessingStart,
   onProcessingEnd,
   onError
@@ -60,9 +62,17 @@ export const useFileHandler = ({
             // CRITÉRIO DE ACEITE: Exibe os dados no console
             console.log("Hook 'useFileHandler' recebeu os dados processados da aba BANCO:", dadosUnificados);
             
+            // Se temos dados unificados, usar callback específico
+            if (dadosUnificados.funcionariosUnificados && onUnifiedDataLoaded) {
+              console.log("📊 DADOS UNIFICADOS FINAIS:", dadosUnificados.funcionariosUnificados);
+              onUnifiedDataLoaded(dadosUnificados.funcionariosUnificados);
+            }
+            
             // Usa o callback para enviar os dados para o componente pai
             if (onXlsxDataLoaded) {
-              onXlsxDataLoaded(dadosUnificados);
+              onXlsxDataLoaded({
+                colaboradores: dadosUnificados.colaboradores
+              });
             }
             
             // Continuar com processamento normal das abas de frequência
@@ -106,7 +116,7 @@ export const useFileHandler = ({
     } else {
       onError('Por favor, selecione um arquivo CSV ou Excel válido.');
     }
-  }, [onFileProcessed, onMultiplePeriodsProcessed, onXlsxDataLoaded, onProcessingStart, onProcessingEnd, onError]);
+  }, [onFileProcessed, onMultiplePeriodsProcessed, onXlsxDataLoaded, onUnifiedDataLoaded, onProcessingStart, onProcessingEnd, onError]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();

@@ -1,6 +1,6 @@
 
 import * as XLSX from 'xlsx';
-import { ColaboradorInfo } from '@/utils/xlsxProcessor';
+import { ColaboradorInfo } from './types';
 
 /**
  * Realiza o parsing da aba "BANCO" para extrair a lista oficial de colaboradores.
@@ -23,27 +23,33 @@ export function parsePlanilhaBanco(sheet: XLSX.WorkSheet): Map<string, Colaborad
 
   // 2. Mapear as colunas a partir do cabeçalho
   const cabecalho = dadosJson[indiceCabecalho];
-  const colMatricula = cabecalho.indexOf('MATRICULA');
-  const colNome = cabecalho.indexOf('NOME');
-  const colCargo = cabecalho.indexOf('CARGO');
-  const colDataAdmissao = cabecalho.indexOf('ADMISSÃO');
+  const colunas = {
+    matricula: cabecalho.indexOf('MATRICULA'),
+    nome: cabecalho.indexOf('NOME'),
+    cargo: cabecalho.indexOf('CARGO'),
+    idade: cabecalho.indexOf('IDADE'),
+    lider: cabecalho.indexOf('LIDER'),
+    dataAdmissao: cabecalho.indexOf('ADMISSÃO')
+  };
 
   // 3. Iterar sobre as linhas de dados
   for (let i = indiceCabecalho + 1; i < dadosJson.length; i++) {
     const linha = dadosJson[i];
-    const matricula = linha[colMatricula]?.toString().trim();
+    const matricula = linha[colunas.matricula]?.toString().trim();
 
     if (matricula && /^\d+$/.test(matricula)) { // Garante que a matrícula é um número
       // Formata a data de admissão se ela for um objeto Date
-      let dataAdmissaoFormatada = linha[colDataAdmissao];
+      let dataAdmissaoFormatada = linha[colunas.dataAdmissao];
       if (dataAdmissaoFormatada instanceof Date) {
         dataAdmissaoFormatada = dataAdmissaoFormatada.toLocaleDateString('pt-BR');
       }
 
       const colaborador: ColaboradorInfo = {
         matricula,
-        nome: linha[colNome] || 'N/A',
-        cargo: linha[colCargo] || 'Cargo não informado',
+        nome: linha[colunas.nome] || 'N/A',
+        cargo: linha[colunas.cargo] || 'Cargo não informado',
+        idade: linha[colunas.idade] ? parseInt(linha[colunas.idade], 10) : undefined,
+        lider: linha[colunas.lider] || undefined,
         dataAdmissao: dataAdmissaoFormatada,
       };
       mapaColaboradores.set(matricula, colaborador);

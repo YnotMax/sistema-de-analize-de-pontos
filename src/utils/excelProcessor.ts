@@ -1,42 +1,65 @@
 
 import * as XLSX from 'xlsx';
 import { processarArquivoXLSX, DadosUnificadosXLSX } from '@/utils/xlsxProcessor';
-import { parsePlanilhaBanco } from '@/utils/excel/bancoSheetParser';
 import { processarAbaFrequencia } from '@/utils/excel/sheetProcessor';
-import { PeriodoData } from '@/utils/excel/types';
+import { processarArquivoXLSXUnificado } from '@/utils/excel/unifiedProcessor';
+import { PeriodoData, FuncionarioUnificado } from '@/utils/excel/types';
 
 // Re-export types for backward compatibility
-export type { PeriodoData } from '@/utils/excel/types';
+export type { PeriodoData, FuncionarioUnificado } from '@/utils/excel/types';
 
 /**
- * Função principal atualizada para processar a aba BANCO.
+ * Função principal atualizada para processar a aba BANCO e retornar dados unificados.
  */
-export async function processarArquivoXLSXBanco(file: File): Promise<DadosUnificadosXLSX> {
-  const data = await file.arrayBuffer();
-  const workbook = XLSX.read(data, { type: 'array' });
+export async function processarArquivoXLSXBanco(file: File): Promise<{
+  colaboradores: Map<string, any>;
+  funcionariosUnificados?: FuncionarioUnificado[];
+}> {
+  // Primeiro, tentar o processamento unificado completo
+  try {
+    const funcionariosUnificados = await processarArquivoXLSXUnificado(file);
+    
+    // Criar o mapa de colaboradores para compatibilidade
+    const colaboradores = new Map();
+    funcionariosUnificados.forEach(funcionario => {
+      colaboradores.set(funcionario.matricula, funcionario);
+    });
 
-  const resultado: DadosUnificadosXLSX = {
-    colaboradores: new Map(),
-  };
+    console.log(`[processarArquivoXLSXBanco] Processamento unificado bem-sucedido: ${funcionariosUnificados.length} funcionários`);
+    
+    return {
+      colaboradores,
+      funcionariosUnificados
+    };
+  } catch (unifiedError) {
+    console.warn('[processarArquivoXLSXBanco] Erro no processamento unificado, tentando fallback:', unifiedError);
+    
+    // Fallback para o processamento original
+    const data = await file.arrayBuffer();
+    const workbook = XLSX.read(data, { type: 'array' });
 
-  for (const sheetName of workbook.SheetNames) {
-    const nomeAba = sheetName.toUpperCase();
-    const sheet = workbook.Sheets[sheetName];
+    const resultado = {
+      colaboradores: new Map(),
+    };
 
-    // Lógica de roteamento para chamar o parser da aba BANCO
-    if (nomeAba.includes('BANCO')) {
-      console.log(`[processarArquivoXLSXBanco] Encontrada aba de Colaboradores: "${sheetName}".`);
-      resultado.colaboradores = parsePlanilhaBanco(sheet);
-      // Podemos parar aqui por enquanto, já que a lista mestra é o mais importante
-      break; 
+    for (const sheetName of workbook.SheetNames) {
+      const nomeAba = sheetName.toUpperCase();
+      const sheet = workbook.Sheets[sheetName];
+
+      if (nomeAba.includes('BANCO')) {
+        console.log(`[processarArquivoXLSXBanco] Encontrada aba de Colaboradores: "${sheetName}".`);
+        const { parsePlanilhaBanco } = await import('@/utils/excel/bancoSheetParser');
+        resultado.colaboradores = parsePlanilhaBanco(sheet);
+        break; 
+      }
     }
-  }
 
-  if (resultado.colaboradores.size === 0) {
-      throw new Error("Não foi possível encontrar a aba 'BANCO' com a lista de colaboradores no arquivo.");
-  }
+    if (resultado.colaboradores.size === 0) {
+        throw new Error("Não foi possível encontrar a aba 'BANCO' com a lista de colaboradores no arquivo.");
+    }
 
-  return resultado;
+    return resultado;
+  }
 }
 
 export const processarExcel = async (file: File): Promise<PeriodoData[]> => {
@@ -46,11 +69,17 @@ export const processarExcel = async (file: File): Promise<PeriodoData[]> => {
   if (file.name.toLowerCase().endsWith('.xlsx')) {
     try {
       // Tentar usar o processador da aba BANCO primeiro
-      const dadosUnificados: DadosUnificadosXLSX = await processarArquivoXLSXBanco(file);
+      const dadosUnificados = await processarArquivoXLSXBanco(file);
       
       // CRITÉRIO DE ACEITE: Exibe os dados extraídos no console para verificação
       console.log("DADOS MESTRE EXTRAÍDOS DA ABA BANCO:", dadosUnificados);
       console.log("Mapa de Colaboradores:", dadosUnificados.colaboradores);
+      
+      // Se conseguiu extrair funcionários unificados, exibe informações detalhadas
+      if (dadosUnificados.funcionariosUnificados) {
+        console.log(`[ExcelProcessor] Encontrados ${dadosUnificados.funcionariosUnificados.length} funcionários unificados.`);
+        console.log("EXEMPLO DE FUNCIONÁRIO UNIFICADO:", dadosUnificados.funcionariosUnificados[0]);
+      }
       
       // Se conseguiu extrair colaboradores, exibe no console
       if (dadosUnificados.colaboradores.size > 0) {
