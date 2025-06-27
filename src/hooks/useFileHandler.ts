@@ -62,12 +62,18 @@ export const useFileHandler = ({
         processarArquivoXLSXBanco(file)
           .then(dadosUnificados => {
             // CRITÉRIO DE ACEITE: Exibe os dados no console
-            console.log("Hook 'useFileHandler' recebeu os dados processados da aba BANCO:", dadosUnificados);
+            console.log("🔍 [DEBUG] Hook 'useFileHandler' recebeu os dados processados da aba BANCO:", dadosUnificados);
             
             // Se temos dados unificados, usar callback específico
             if (dadosUnificados.funcionariosUnificados && onUnifiedDataLoaded) {
-              console.log("📊 DADOS UNIFICADOS FINAIS:", dadosUnificados.funcionariosUnificados);
+              console.log("🔍 [DEBUG] Chamando onUnifiedDataLoaded com dados:", dadosUnificados.funcionariosUnificados);
               onUnifiedDataLoaded(dadosUnificados.funcionariosUnificados);
+            }
+            
+            // Verificar se temos callback onUnifiedDataProcessed
+            if (dadosUnificados.funcionariosUnificados && onUnifiedDataProcessed) {
+              console.log("🔍 [DEBUG] Chamando onUnifiedDataProcessed com dados:", dadosUnificados.funcionariosUnificados);
+              onUnifiedDataProcessed(dadosUnificados.funcionariosUnificados, file.name);
             }
             
             // Usa o callback para enviar os dados para o componente pai
@@ -81,6 +87,7 @@ export const useFileHandler = ({
             return processarExcel(file);
           })
           .then(periodosDisponiveis => {
+            console.log("🔍 [DEBUG] Processando períodos disponíveis:", periodosDisponiveis);
             onMultiplePeriodsProcessed(periodosDisponiveis, file.name);
           })
           .catch(error => {

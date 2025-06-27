@@ -22,6 +22,7 @@ export const usePontoProcessor = () => {
   const [dadosOriginaisPorPeriodo, setDadosOriginaisPorPeriodo] = useState<Map<string, FuncionarioData[]>>(new Map());
 
   const handleFileProcessed = (data: FuncionarioData[], filename: string) => {
+    console.log("🔍 [DEBUG] handleFileProcessed chamado com:", data.length, "funcionários");
     setFuncionarios(data);
     setFileName(filename);
     setError(null);
@@ -33,6 +34,8 @@ export const usePontoProcessor = () => {
   };
 
   const handleUnifiedDataProcessed = (data: FuncionarioUnificado[], filename: string) => {
+    console.log("🔍 [DEBUG] handleUnifiedDataProcessed chamado com:", data.length, "funcionários unificados");
+    console.log("🔍 [DEBUG] Dados recebidos:", data);
     setFuncionariosUnificados(data);
     setFileName(filename);
     setError(null);
@@ -40,7 +43,7 @@ export const usePontoProcessor = () => {
   };
 
   const handleMultiplePeriodsProcessed = (periods: PeriodoData[], filename: string) => {
-    console.log('Períodos processados:', periods);
+    console.log('🔍 [DEBUG] handleMultiplePeriodsProcessed chamado com:', periods.length, 'períodos');
     setPeriodosDisponiveis(periods);
     setFileName(filename);
     setError(null);

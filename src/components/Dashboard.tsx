@@ -18,6 +18,13 @@ interface DashboardProps {
 }
 
 export const Dashboard = ({ funcionarios, funcionariosUnificados, fileName, onReset }: DashboardProps) => {
+  // Debug logs para verificar os dados recebidos
+  console.log("🔍 [DEBUG] Dashboard recebeu props:", {
+    funcionarios: funcionarios?.length || 0,
+    funcionariosUnificados: funcionariosUnificados?.length || 0,
+    fileName
+  });
+
   const [searchTerm, setSearchTerm] = useState('');
   const [filterTag, setFilterTag] = useState<string>('');
 
@@ -84,7 +91,10 @@ export const Dashboard = ({ funcionarios, funcionariosUnificados, fileName, onRe
           <StatsOverview funcionarios={funcionariosUnificados} />
         </div>
       ) : (
-        <OldStatsOverview stats={stats} />
+        <div>
+          <h3 className="text-xl font-bold mb-4 text-gray-900">Visão Geral (Fallback)</h3>
+          <OldStatsOverview stats={stats} />
+        </div>
       )}
 
       {/* Nova Seção de Análise de Frequência com Gráfico */}

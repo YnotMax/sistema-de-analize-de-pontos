@@ -5,6 +5,7 @@ import { FileDropZone } from './FileUpload/FileDropZone';
 import { FileFormatInfo } from './FileUpload/FileFormatInfo';
 import { PeriodoData } from '@/utils/excel/types';
 import { FuncionarioUnificado } from '@/utils/excel/types';
+import { DadosUnificadosXLSX } from '@/utils/xlsxProcessor';
 
 interface FileUploadProps {
   onFileProcessed: (data: FuncionarioData[], filename: string) => void;
@@ -23,6 +24,18 @@ export const FileUpload = ({
   onProcessingEnd, 
   onError 
 }: FileUploadProps) => {
+
+  // Callback para dados XLSX (compatibilidade)
+  const handleXlsxDataLoaded = (data: DadosUnificadosXLSX) => {
+    console.log("🔍 [DEBUG] FileUpload recebeu dados XLSX:", data);
+  };
+
+  // Callback para dados unificados
+  const handleUnifiedDataLoaded = (data: FuncionarioUnificado[]) => {
+    console.log("🔍 [DEBUG] FileUpload recebeu dados unificados:", data);
+    onUnifiedDataProcessed(data, 'arquivo.xlsx');
+  };
+
   const {
     isDragOver,
     handleDrop,
@@ -34,6 +47,8 @@ export const FileUpload = ({
     onFileProcessed,
     onUnifiedDataProcessed,
     onMultiplePeriodsProcessed,
+    onXlsxDataLoaded: handleXlsxDataLoaded,
+    onUnifiedDataLoaded: handleUnifiedDataLoaded,
     onProcessingStart,
     onProcessingEnd,
     onError
