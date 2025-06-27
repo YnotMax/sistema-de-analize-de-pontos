@@ -64,20 +64,25 @@ export const useFileHandler = ({
             // CRITÉRIO DE ACEITE: Exibe os dados no console
             console.log("🔍 [DEBUG] Hook 'useFileHandler' recebeu os dados processados da aba BANCO:", dadosUnificados);
             
-            // Se temos dados unificados, usar callback específico
-            if (dadosUnificados.funcionariosUnificados && onUnifiedDataLoaded) {
-              console.log("🔍 [DEBUG] Chamando onUnifiedDataLoaded com dados:", dadosUnificados.funcionariosUnificados);
-              onUnifiedDataLoaded(dadosUnificados.funcionariosUnificados);
-            }
-            
-            // Verificar se temos callback onUnifiedDataProcessed
-            if (dadosUnificados.funcionariosUnificados && onUnifiedDataProcessed) {
-              console.log("🔍 [DEBUG] Chamando onUnifiedDataProcessed com dados:", dadosUnificados.funcionariosUnificados);
-              onUnifiedDataProcessed(dadosUnificados.funcionariosUnificados, file.name);
+            // Se temos dados unificados, processar e enviar
+            if (dadosUnificados.funcionariosUnificados && dadosUnificados.funcionariosUnificados.length > 0) {
+              console.log("🔍 [DEBUG] Processando funcionários unificados:", dadosUnificados.funcionariosUnificados.length);
+              
+              // Chamar callback para dados unificados
+              if (onUnifiedDataLoaded) {
+                console.log("🔍 [DEBUG] Chamando onUnifiedDataLoaded com dados:", dadosUnificados.funcionariosUnificados);
+                onUnifiedDataLoaded(dadosUnificados.funcionariosUnificados);
+              }
+              
+              // Verificar se temos callback onUnifiedDataProcessed
+              if (onUnifiedDataProcessed) {
+                console.log("🔍 [DEBUG] Chamando onUnifiedDataProcessed com dados:", dadosUnificados.funcionariosUnificados);
+                onUnifiedDataProcessed(dadosUnificados.funcionariosUnificados, file.name);
+              }
             }
             
             // Usa o callback para enviar os dados para o componente pai
-            if (onXlsxDataLoaded) {
+            if (onXlsxDataLoaded && dadosUnificados.colaboradores) {
               onXlsxDataLoaded({
                 colaboradores: dadosUnificados.colaboradores
               });

@@ -36,9 +36,27 @@ export const usePontoProcessor = () => {
   const handleUnifiedDataProcessed = (data: FuncionarioUnificado[], filename: string) => {
     console.log("🔍 [DEBUG] handleUnifiedDataProcessed chamado com:", data.length, "funcionários unificados");
     console.log("🔍 [DEBUG] Dados recebidos:", data);
+    
+    // Verificar se os dados têm contadores válidos
+    if (data.length > 0) {
+      const primeiroFuncionario = data[0];
+      console.log("🔍 [DEBUG] Primeiro funcionário:", primeiroFuncionario);
+      console.log("🔍 [DEBUG] Contadores do primeiro funcionário:", primeiroFuncionario.contadores);
+      
+      // Verificar se há dados de frequência
+      const totalContadores = Object.values(primeiroFuncionario.contadores).reduce((sum, count) => sum + count, 0);
+      console.log("🔍 [DEBUG] Total de contadores do primeiro funcionário:", totalContadores);
+    }
+    
     setFuncionariosUnificados(data);
     setFileName(filename);
     setError(null);
+    setIsMultiPeriod(false); // Dados unificados não precisam de seletor de período
+    setPeriodosDisponiveis([]);
+    setPeriodoAtivo('');
+    setDadosOriginaisPorPeriodo(new Map());
+    setFuncionarios([]); // Limpar funcionários normais quando temos dados unificados
+    
     console.log('✅ Dados unificados processados no hook:', data);
   };
 
@@ -69,6 +87,9 @@ export const usePontoProcessor = () => {
       setFuncionarios(dadosOriginais.get(periodoMaisRecente.id) || []);
       console.log('Período ativo definido:', periodoMaisRecente.id);
     }
+    
+    // Limpar dados unificados quando processamos períodos múltiplos
+    setFuncionariosUnificados([]);
   };
 
   const consolidarTodosPeriodos = (): FuncionarioData[] => {

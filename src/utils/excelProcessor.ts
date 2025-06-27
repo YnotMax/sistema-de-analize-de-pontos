@@ -1,4 +1,3 @@
-
 import * as XLSX from 'xlsx';
 import { processarArquivoXLSX, DadosUnificadosXLSX } from '@/utils/xlsxProcessor';
 import { processarAbaFrequencia } from '@/utils/excel/sheetProcessor';
@@ -15,9 +14,15 @@ export async function processarArquivoXLSXBanco(file: File): Promise<{
   colaboradores: Map<string, any>;
   funcionariosUnificados?: FuncionarioUnificado[];
 }> {
+  console.log('[processarArquivoXLSXBanco] Iniciando processamento...');
+  
   // Primeiro, tentar o processamento unificado completo
   try {
     const funcionariosUnificados = await processarArquivoXLSXUnificado(file);
+    
+    if (!funcionariosUnificados || funcionariosUnificados.length === 0) {
+      throw new Error("Nenhum funcionário unificado foi processado");
+    }
     
     // Criar o mapa de colaboradores para compatibilidade
     const colaboradores = new Map();
@@ -25,14 +30,15 @@ export async function processarArquivoXLSXBanco(file: File): Promise<{
       colaboradores.set(funcionario.matricula, funcionario);
     });
 
-    console.log(`[processarArquivoXLSXBanco] Processamento unificado bem-sucedido: ${funcionariosUnificados.length} funcionários`);
+    console.log(`[processarArquivoXLSXBanco] ✅ Processamento unificado bem-sucedido: ${funcionariosUnificados.length} funcionários`);
+    console.log('[processarArquivoXLSXBanco] Exemplo de funcionário processado:', funcionariosUnificados[0]);
     
     return {
       colaboradores,
       funcionariosUnificados
     };
   } catch (unifiedError) {
-    console.warn('[processarArquivoXLSXBanco] Erro no processamento unificado, tentando fallback:', unifiedError);
+    console.warn('[processarArquivoXLSXBanco] ⚠️ Erro no processamento unificado, tentando fallback:', unifiedError);
     
     // Fallback para o processamento original
     const data = await file.arrayBuffer();
@@ -58,12 +64,13 @@ export async function processarArquivoXLSXBanco(file: File): Promise<{
         throw new Error("Não foi possível encontrar a aba 'BANCO' com a lista de colaboradores no arquivo.");
     }
 
+    console.log(`[processarArquivoXLSXBanco] Fallback concluído: ${resultado.colaboradores.size} colaboradores`);
     return resultado;
   }
 }
 
 export const processarExcel = async (file: File): Promise<PeriodoData[]> => {
-  console.log('Iniciando processamento do Excel...');
+  console.log('[processarExcel] Iniciando processamento do Excel...');
   
   // Verificar se devemos usar o novo processador para arquivos .xlsx com aba BANCO
   if (file.name.toLowerCase().endsWith('.xlsx')) {
@@ -72,35 +79,41 @@ export const processarExcel = async (file: File): Promise<PeriodoData[]> => {
       const dadosUnificados = await processarArquivoXLSXBanco(file);
       
       // CRITÉRIO DE ACEITE: Exibe os dados extraídos no console para verificação
-      console.log("DADOS MESTRE EXTRAÍDOS DA ABA BANCO:", dadosUnificados);
-      console.log("Mapa de Colaboradores:", dadosUnificados.colaboradores);
+      console.log("[processarExcel] 🔍 DADOS MESTRE EXTRAÍDOS DA ABA BANCO:", dadosUnificados);
+      console.log("[processarExcel] 📋 Mapa de Colaboradores:", dadosUnificados.colaboradores);
       
       // Se conseguiu extrair funcionários unificados, exibe informações detalhadas
       if (dadosUnificados.funcionariosUnificados) {
-        console.log(`[ExcelProcessor] Encontrados ${dadosUnificados.funcionariosUnificados.length} funcionários unificados.`);
-        console.log("EXEMPLO DE FUNCIONÁRIO UNIFICADO:", dadosUnificados.funcionariosUnificados[0]);
+        console.log(`[processarExcel] ✅ Encontrados ${dadosUnificados.funcionariosUnificados.length} funcionários unificados.`);
+        console.log("[processarExcel] 👤 EXEMPLO DE FUNCIONÁRIO UNIFICADO:", dadosUnificados.funcionariosUnificados[0]);
+        
+        // Log dos contadores para verificar se estão corretos
+        const exemploContadores = dadosUnificados.funcionariosUnificados[0]?.contadores;
+        if (exemploContadores) {
+          console.log("[processarExcel] 📊 CONTADORES DO PRIMEIRO FUNCIONÁRIO:", exemploContadores);
+        }
       }
       
       // Se conseguiu extrair colaboradores, exibe no console
       if (dadosUnificados.colaboradores.size > 0) {
-        console.log(`[ExcelProcessor] Encontrados ${dadosUnificados.colaboradores.size} colaboradores na aba BANCO.`);
+        console.log(`[processarExcel] 👥 Encontrados ${dadosUnificados.colaboradores.size} colaboradores na aba BANCO.`);
       }
     } catch (bancoError) {
-      console.warn('[ExcelProcessor] Erro ao processar aba BANCO, tentando processador LISTA:', bancoError);
+      console.warn('[processarExcel] ⚠️ Erro ao processar aba BANCO, tentando processador LISTA:', bancoError);
       
       // Se falhar com BANCO, tentar com LISTA
       try {
         const dadosUnificados: DadosUnificadosXLSX = await processarArquivoXLSX(file);
         
         // CRITÉRIO DE ACEITE: Exibe os dados extraídos no console para verificação
-        console.log("DADOS MESTRE EXTRAÍDOS DO XLSX:", dadosUnificados);
-        console.log("Mapa de Colaboradores:", dadosUnificados.colaboradores);
+        console.log("[processarExcel] 🔍 DADOS MESTRE EXTRAÍDOS DO XLSX:", dadosUnificados);
+        console.log("[processarExcel] 📋 Mapa de Colaboradores:", dadosUnificados.colaboradores);
         
         if (dadosUnificados.colaboradores.size > 0) {
-          console.log(`[ExcelProcessor] Encontrados ${dadosUnificados.colaboradores.size} colaboradores na aba LISTA.`);
+          console.log(`[processarExcel] ✅ Encontrados ${dadosUnificados.colaboradores.size} colaboradores na aba LISTA.`);
         }
       } catch (xlsxError) {
-        console.warn('[ExcelProcessor] Erro ao processar com xlsxProcessor, continuando com método tradicional:', xlsxError);
+        console.warn('[processarExcel] ⚠️ Erro ao processar com xlsxProcessor, continuando com método tradicional:', xlsxError);
       }
     }
   }
@@ -114,7 +127,7 @@ export const processarExcel = async (file: File): Promise<PeriodoData[]> => {
   });
 
   const abas = workbook.SheetNames;
-  console.log('Abas encontradas:', abas);
+  console.log('[processarExcel] 📑 Abas encontradas:', abas);
 
   if (abas.length === 0) {
     throw new Error('Nenhuma aba encontrada no arquivo Excel.');
@@ -135,6 +148,6 @@ export const processarExcel = async (file: File): Promise<PeriodoData[]> => {
     throw new Error('Nenhuma aba válida encontrada. Verifique o formato das planilhas.');
   }
 
-  console.log('Períodos processados:', periodosDisponiveis.length);
+  console.log('[processarExcel] ✅ Períodos processados:', periodosDisponiveis.length);
   return periodosDisponiveis;
 };

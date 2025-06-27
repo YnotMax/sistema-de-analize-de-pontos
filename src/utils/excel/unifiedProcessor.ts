@@ -1,4 +1,3 @@
-
 import * as XLSX from 'xlsx';
 import { calcularContadoresDeFrequencia } from '../frequenciaProcessor';
 import { parsePlanilhaBanco } from './bancoSheetParser';
@@ -26,6 +25,10 @@ export async function processarArquivoXLSXUnificado(file: File): Promise<Funcion
   console.log(`[processarArquivoXLSXUnificado] Processando aba BANCO: ${abaBanco}`);
   const dadosMestre = parsePlanilhaBanco(workbook.Sheets[abaBanco]);
   
+  if (dadosMestre.size === 0) {
+    throw new Error("Nenhum colaborador encontrado na aba BANCO.");
+  }
+  
   // 2. Extrair dados de frequência de TODAS as abas de meses
   const abasFrequencia = workbook.SheetNames.filter(isAbaDeFrequencia);
   console.log(`[processarArquivoXLSXUnificado] Abas de frequência encontradas:`, abasFrequencia);
@@ -36,6 +39,7 @@ export async function processarArquivoXLSXUnificado(file: File): Promise<Funcion
     diasDetalhados: Record<string, string>;
   }>();
 
+  // Processar cada aba de frequência
   for (const sheetName of abasFrequencia) {
     console.log(`[processarArquivoXLSXUnificado] Processando aba: ${sheetName}`);
     const sheet = workbook.Sheets[sheetName];
@@ -43,11 +47,15 @@ export async function processarArquivoXLSXUnificado(file: File): Promise<Funcion
     
     // Usa a função genérica para calcular os contadores da aba atual
     const funcionariosDoMes = calcularContadoresDeFrequencia(dadosDaAba, sheetName);
+    console.log(`[processarArquivoXLSXUnificado] Funcionários processados na aba ${sheetName}:`, funcionariosDoMes.length);
 
     // Consolida (soma) os contadores do mês no mapa geral
     funcionariosDoMes.forEach(funcionario => {
       const matricula = funcionario.matricula || funcionario.id?.toString();
-      if (!matricula) return;
+      if (!matricula) {
+        console.warn(`[processarArquivoXLSXUnificado] Funcionário sem matrícula encontrado:`, funcionario);
+        return;
+      }
 
       const dadosAtuais = contadoresPorMatricula.get(matricula) || {
         contadores: {},
@@ -72,12 +80,20 @@ export async function processarArquivoXLSXUnificado(file: File): Promise<Funcion
     });
   }
 
+  console.log(`[processarArquivoXLSXUnificado] Contadores consolidados para ${contadoresPorMatricula.size} funcionários`);
+
   // 3. Unificar dados mestres com os contadores consolidados
   const resultadoFinal = unificarDados(dadosMestre, contadoresPorMatricula);
 
   console.log('✅ Processamento XLSX unificado concluído! Dados finais:', resultadoFinal);
   console.log(`📊 Total de funcionários processados: ${resultadoFinal.length}`);
   console.log(`📅 Abas de frequência processadas: ${abasFrequencia.length}`);
+  
+  // Log detalhado dos primeiros funcionários para debug
+  if (resultadoFinal.length > 0) {
+    console.log('🔍 Exemplo de funcionário unificado:', resultadoFinal[0]);
+    console.log('🔍 Contadores do primeiro funcionário:', resultadoFinal[0].contadores);
+  }
   
   return resultadoFinal;
 }
@@ -95,6 +111,8 @@ function unificarDados(
 ): FuncionarioUnificado[] {
   const listaUnificada: FuncionarioUnificado[] = [];
 
+  console.log(`[unificarDados] Unificando ${dadosMestre.size} colaboradores com dados de frequência`);
+
   dadosMestre.forEach((colaborador, matricula) => {
     const dadosFrequencia = contadores.get(matricula) || {
       contadores: {},
@@ -102,14 +120,26 @@ function unificarDados(
       diasDetalhados: {}
     };
 
-    listaUnificada.push({
+    const funcionarioUnificado: FuncionarioUnificado = {
       ...colaborador,
       contadores: dadosFrequencia.contadores,
       totalDias: dadosFrequencia.totalDias,
       diasDetalhados: dadosFrequencia.diasDetalhados
-    });
+    };
+
+    listaUnificada.push(funcionarioUnificado);
+    
+    // Log para debug dos primeiros funcionários
+    if (listaUnificada.length <= 3) {
+      console.log(`[unificarDados] Funcionário ${matricula} unificado:`, {
+        nome: funcionarioUnificado.nome,
+        contadores: funcionarioUnificado.contadores,
+        totalDias: funcionarioUnificado.totalDias
+      });
+    }
   });
 
+  console.log(`[unificarDados] Unificação concluída: ${listaUnificada.length} funcionários`);
   return listaUnificada;
 }
 
@@ -119,5 +149,10 @@ function unificarDados(
 function isAbaDeFrequencia(sheetName: string): boolean {
   const nomeAba = sheetName.toUpperCase();
   const meses = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
-  return meses.some(mes => nomeAba.startsWith(mes));
+  
+  // Verifica se a aba começa com um dos meses e não é a aba BANCO
+  const isMonth = meses.some(mes => nomeAba.startsWith(mes));
+  const isBanco = nomeAba.includes('BANCO');
+  
+  return isMonth && !isBanco;
 }
