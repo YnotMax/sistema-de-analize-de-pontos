@@ -1,7 +1,6 @@
-
 import { ChevronDown, Calendar, FileText } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PeriodoData } from './FileUpload';
+import { PeriodoData } from '@/utils/excel/types';
 
 interface PeriodSelectorProps {
   periodosDisponiveis: PeriodoData[];
