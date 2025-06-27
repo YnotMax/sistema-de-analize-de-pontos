@@ -33,26 +33,17 @@ export const Dashboard = ({ funcionarios, funcionariosUnificados, fileName, onRe
     });
   }, [funcionarios, searchTerm, filterTag]);
 
-  // Estatísticas gerais
+  // Estatísticas gerais para fallback (dados legados)
   const stats = useMemo(() => {
     const todasTags = new Set<string>();
     const contagemTags: Record<string, number> = {};
     
-    // Debug: log dos funcionários e seus contadores
-    console.log('Dashboard - Funcionários para estatísticas:', funcionarios.length);
-    funcionarios.forEach((funcionario, index) => {
-      if (index < 3) { // Log apenas os primeiros 3 para não poluir
-        console.log(`Funcionário ${funcionario.nome}:`, funcionario.contadores);
-      }
-      
+    funcionarios.forEach((funcionario) => {
       Object.keys(funcionario.contadores).forEach(tag => {
         todasTags.add(tag);
         contagemTags[tag] = (contagemTags[tag] || 0) + funcionario.contadores[tag];
       });
     });
-
-    console.log('Dashboard - Todas as tags encontradas:', Array.from(todasTags));
-    console.log('Dashboard - Contagem final das tags:', contagemTags);
 
     return {
       totalFuncionarios: funcionarios.length,
@@ -85,7 +76,7 @@ export const Dashboard = ({ funcionarios, funcionariosUnificados, fileName, onRe
         </div>
       </div>
 
-      {/* Nova Seção de KPIs - Visão Geral */}
+      {/* Seção de KPIs - Visão Geral */}
       {funcionariosUnificados && funcionariosUnificados.length > 0 ? (
         <div>
           <h3 className="text-xl font-bold mb-4 text-gray-900">Visão Geral</h3>
