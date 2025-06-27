@@ -1,19 +1,22 @@
 
 import { useState, useMemo } from 'react';
 import { FuncionarioData } from '@/pages/Index';
-import { StatsOverview } from './StatsOverview';
+import { StatsOverview as OldStatsOverview } from './StatsOverview';
+import { StatsOverview } from './Dashboard/StatsOverview';
 import { FuncionariosList } from './FuncionariosList';
 import { SearchAndFilters } from './SearchAndFilters';
 import { Button } from '@/components/ui/button';
 import { Upload } from 'lucide-react';
+import { FuncionarioUnificado } from '@/utils/excel/types';
 
 interface DashboardProps {
   funcionarios: FuncionarioData[];
+  funcionariosUnificados?: FuncionarioUnificado[];
   fileName: string;
   onReset: () => void;
 }
 
-export const Dashboard = ({ funcionarios, fileName, onReset }: DashboardProps) => {
+export const Dashboard = ({ funcionarios, funcionariosUnificados, fileName, onReset }: DashboardProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterTag, setFilterTag] = useState<string>('');
 
@@ -69,10 +72,10 @@ export const Dashboard = ({ funcionarios, fileName, onReset }: DashboardProps) =
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">
-              Análise Processada
+              Dashboard de Análise
             </h2>
             <p className="text-gray-600">
-              Arquivo: <span className="font-medium">{fileName}</span> • {stats.totalFuncionarios} funcionários
+              Analisando o arquivo: <span className="font-medium">{fileName}</span> • {stats.totalFuncionarios} funcionários
             </p>
           </div>
           <Button onClick={onReset} variant="outline" className="gap-2">
@@ -82,8 +85,15 @@ export const Dashboard = ({ funcionarios, fileName, onReset }: DashboardProps) =
         </div>
       </div>
 
-      {/* Estatísticas gerais */}
-      <StatsOverview stats={stats} />
+      {/* Nova Seção de KPIs - Visão Geral */}
+      {funcionariosUnificados && funcionariosUnificados.length > 0 ? (
+        <div>
+          <h3 className="text-xl font-bold mb-4 text-gray-900">Visão Geral</h3>
+          <StatsOverview funcionarios={funcionariosUnificados} />
+        </div>
+      ) : (
+        <OldStatsOverview stats={stats} />
+      )}
 
       {/* Busca e filtros */}
       <SearchAndFilters
@@ -95,7 +105,10 @@ export const Dashboard = ({ funcionarios, fileName, onReset }: DashboardProps) =
       />
 
       {/* Lista de funcionários */}
-      <FuncionariosList funcionarios={funcionariosFiltrados} />
+      <div>
+        <h3 className="text-xl font-bold mb-4 text-gray-900">Detalhes por Funcionário</h3>
+        <FuncionariosList funcionarios={funcionariosFiltrados} />
+      </div>
     </div>
   );
 };

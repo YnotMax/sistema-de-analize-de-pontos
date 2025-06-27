@@ -1,6 +1,6 @@
-
 import { useState } from 'react';
 import { FuncionarioData } from '@/pages/Index';
+import { FuncionarioUnificado } from '@/utils/excel/types';
 
 export interface PeriodoData {
   id: string;
@@ -12,6 +12,7 @@ export interface PeriodoData {
 
 export const usePontoProcessor = () => {
   const [funcionarios, setFuncionarios] = useState<FuncionarioData[]>([]);
+  const [funcionariosUnificados, setFuncionariosUnificados] = useState<FuncionarioUnificado[]>([]);
   const [periodosDisponiveis, setPeriodosDisponiveis] = useState<PeriodoData[]>([]);
   const [periodoAtivo, setPeriodoAtivo] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -28,6 +29,14 @@ export const usePontoProcessor = () => {
     setPeriodosDisponiveis([]);
     setPeriodoAtivo('');
     setDadosOriginaisPorPeriodo(new Map());
+    setFuncionariosUnificados([]);
+  };
+
+  const handleUnifiedDataProcessed = (data: FuncionarioUnificado[], filename: string) => {
+    setFuncionariosUnificados(data);
+    setFileName(filename);
+    setError(null);
+    console.log('✅ Dados unificados processados no hook:', data);
   };
 
   const handleMultiplePeriodsProcessed = (periods: PeriodoData[], filename: string) => {
@@ -168,6 +177,7 @@ export const usePontoProcessor = () => {
 
   const handleReset = () => {
     setFuncionarios([]);
+    setFuncionariosUnificados([]);
     setPeriodosDisponiveis([]);
     setPeriodoAtivo('');
     setFileName('');
@@ -179,6 +189,7 @@ export const usePontoProcessor = () => {
 
   return {
     funcionarios,
+    funcionariosUnificados,
     periodosDisponiveis,
     periodoAtivo,
     isProcessing,
@@ -186,6 +197,7 @@ export const usePontoProcessor = () => {
     fileName,
     isMultiPeriod,
     handleFileProcessed,
+    handleUnifiedDataProcessed,
     handleMultiplePeriodsProcessed,
     handlePeriodoChange,
     handleProcessingStart,

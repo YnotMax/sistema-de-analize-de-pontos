@@ -19,6 +19,7 @@ export interface FuncionarioData {
 const Index = () => {
   const {
     funcionarios,
+    funcionariosUnificados,
     periodosDisponiveis,
     periodoAtivo,
     isProcessing,
@@ -26,6 +27,7 @@ const Index = () => {
     fileName,
     isMultiPeriod,
     handleFileProcessed,
+    handleUnifiedDataProcessed,
     handleMultiplePeriodsProcessed,
     handlePeriodoChange,
     handleProcessingStart,
@@ -34,7 +36,7 @@ const Index = () => {
     handleReset
   } = usePontoProcessor();
 
-  const hasData = funcionarios.length > 0 || periodosDisponiveis.length > 0;
+  const hasData = funcionarios.length > 0 || periodosDisponiveis.length > 0 || funcionariosUnificados.length > 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
@@ -54,6 +56,7 @@ const Index = () => {
             
             <FileUpload
               onFileProcessed={handleFileProcessed}
+              onUnifiedDataProcessed={handleUnifiedDataProcessed}
               onMultiplePeriodsProcessed={handleMultiplePeriodsProcessed}
               onProcessingStart={handleProcessingStart}
               onProcessingEnd={handleProcessingEnd}
@@ -85,6 +88,7 @@ const Index = () => {
                 {/* Dashboard */}
                 <Dashboard 
                   funcionarios={funcionarios} 
+                  funcionariosUnificados={funcionariosUnificados}
                   fileName={fileName}
                   onReset={handleReset}
                 />
