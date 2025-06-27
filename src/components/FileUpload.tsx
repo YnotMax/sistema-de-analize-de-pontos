@@ -4,9 +4,11 @@ import { useFileHandler } from '@/hooks/useFileHandler';
 import { FileDropZone } from './FileUpload/FileDropZone';
 import { FileFormatInfo } from './FileUpload/FileFormatInfo';
 import { PeriodoData } from '@/utils/excel/types';
+import { FuncionarioUnificado } from '@/utils/excel/types';
 
 interface FileUploadProps {
   onFileProcessed: (data: FuncionarioData[], filename: string) => void;
+  onUnifiedDataProcessed: (data: FuncionarioUnificado[], filename: string) => void;
   onMultiplePeriodsProcessed: (periods: PeriodoData[], filename: string) => void;
   onProcessingStart: () => void;
   onProcessingEnd: () => void;
@@ -15,6 +17,7 @@ interface FileUploadProps {
 
 export const FileUpload = ({ 
   onFileProcessed, 
+  onUnifiedDataProcessed,
   onMultiplePeriodsProcessed,
   onProcessingStart, 
   onProcessingEnd, 
@@ -29,6 +32,7 @@ export const FileUpload = ({
     handleFileInput
   } = useFileHandler({
     onFileProcessed,
+    onUnifiedDataProcessed,
     onMultiplePeriodsProcessed,
     onProcessingStart,
     onProcessingEnd,
