@@ -21,6 +21,19 @@ export const usePontoProcessor = () => {
   const [isMultiPeriod, setIsMultiPeriod] = useState(false);
   const [dadosOriginaisPorPeriodo, setDadosOriginaisPorPeriodo] = useState<Map<string, FuncionarioData[]>>(new Map());
 
+  // Função auxiliar para converter FuncionarioUnificado para FuncionarioData
+  const converterUnificadoParaData = (funcionarioUnificado: FuncionarioUnificado): FuncionarioData => {
+    return {
+      id: Math.random(), // Gerar ID temporário
+      matricula: funcionarioUnificado.matricula,
+      nome: funcionarioUnificado.nome,
+      cargo: funcionarioUnificado.cargo,
+      contadores: { ...funcionarioUnificado.contadores },
+      totalDias: Object.values(funcionarioUnificado.contadores).reduce((sum, count) => sum + count, 0),
+      diasDetalhados: {} // Pode ser populado se necessário
+    };
+  };
+
   const handleFileProcessed = (data: FuncionarioData[], filename: string) => {
     console.log("🔍 [DEBUG] handleFileProcessed chamado com:", data.length, "funcionários");
     setFuncionarios(data);
@@ -48,14 +61,20 @@ export const usePontoProcessor = () => {
       console.log("🔍 [DEBUG] Total de contadores do primeiro funcionário:", totalContadores);
     }
     
+    // Atualizar estado dos funcionários unificados
     setFuncionariosUnificados(data);
+    
+    // CORREÇÃO: Também atualizar o estado de funcionários para a tabela de detalhes
+    const funcionariosConvertidos = data.map(converterUnificadoParaData);
+    setFuncionarios(funcionariosConvertidos);
+    console.log("🔍 [DEBUG] Funcionários convertidos para tabela:", funcionariosConvertidos.length);
+    
     setFileName(filename);
     setError(null);
-    setIsMultiPeriod(false); // Dados unificados não precisam de seletor de período
+    setIsMultiPeriod(false);
     setPeriodosDisponiveis([]);
     setPeriodoAtivo('');
     setDadosOriginaisPorPeriodo(new Map());
-    setFuncionarios([]); // Limpar funcionários normais quando temos dados unificados
     
     console.log('✅ Dados unificados processados no hook:', data);
   };
