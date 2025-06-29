@@ -7,6 +7,7 @@ import { OccurrenceChart } from './Dashboard/OccurrenceChart';
 import { FuncionariosList } from './FuncionariosList';
 import { SearchAndFilters } from './SearchAndFilters';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Upload } from 'lucide-react';
 import { FuncionarioUnificado } from '@/utils/excel/types';
 
@@ -77,48 +78,62 @@ export const Dashboard = ({ funcionarios, funcionariosUnificados, fileName, onRe
         </div>
       </div>
 
-      {/* Seção de KPIs - Visão Geral */}
-      {funcionariosUnificados && funcionariosUnificados.length > 0 ? (
-        <div>
-          <h3 className="text-xl font-bold mb-4 text-gray-900">Visão Geral</h3>
-          <StatsOverview funcionarios={funcionariosUnificados} />
-        </div>
-      ) : (
-        <div>
-          <h3 className="text-xl font-bold mb-4 text-gray-900">Visão Geral (Fallback)</h3>
-          <OldStatsOverview stats={stats} />
-        </div>
-      )}
+      {/* Sistema de Abas */}
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+          <TabsTrigger value="employees">Análise por Funcionário</TabsTrigger>
+        </TabsList>
+        
+        {/* Aba: Visão Geral */}
+        <TabsContent value="overview" className="space-y-8">
+          {/* Seção de KPIs - Visão Geral */}
+          {funcionariosUnificados && funcionariosUnificados.length > 0 ? (
+            <div>
+              <h3 className="text-xl font-bold mb-4 text-gray-900">Indicadores Principais</h3>
+              <StatsOverview funcionarios={funcionariosUnificados} />
+            </div>
+          ) : (
+            <div>
+              <h3 className="text-xl font-bold mb-4 text-gray-900">Indicadores Principais (Fallback)</h3>
+              <OldStatsOverview stats={stats} />
+            </div>
+          )}
 
-      {/* Nova Seção de Análise de Frequência com Gráfico */}
-      {funcionariosUnificados && funcionariosUnificados.length > 0 && (
-        <div>
-          <h3 className="text-xl font-bold mb-4 text-gray-900">Análise de Frequência</h3>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-            <div className="col-span-1 lg:col-span-4">
-              <OccurrenceChart funcionarios={funcionariosUnificados} />
+          {/* Nova Seção de Análise de Frequência com Gráfico */}
+          {funcionariosUnificados && funcionariosUnificados.length > 0 && (
+            <div>
+              <h3 className="text-xl font-bold mb-4 text-gray-900">Análise de Frequência</h3>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                <div className="col-span-1 lg:col-span-4">
+                  <OccurrenceChart funcionarios={funcionariosUnificados} />
+                </div>
+                <div className="col-span-1 lg:col-span-3">
+                  {/* Espaço para o próximo gráfico, como o Ranking de Funcionários */}
+                </div>
+              </div>
             </div>
-            <div className="col-span-1 lg:col-span-3">
-              {/* Espaço para o próximo gráfico, como o Ranking de Funcionários */}
-            </div>
+          )}
+        </TabsContent>
+
+        {/* Aba: Análise por Funcionário */}
+        <TabsContent value="employees" className="space-y-6">
+          {/* Busca e filtros */}
+          <SearchAndFilters
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            filterTag={filterTag}
+            onFilterChange={setFilterTag}
+            availableTags={stats.todasTags}
+          />
+
+          {/* Lista de funcionários */}
+          <div>
+            <h3 className="text-xl font-bold mb-4 text-gray-900">Detalhes por Funcionário</h3>
+            <FuncionariosList funcionarios={funcionariosFiltrados} />
           </div>
-        </div>
-      )}
-
-      {/* Busca e filtros */}
-      <SearchAndFilters
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        filterTag={filterTag}
-        onFilterChange={setFilterTag}
-        availableTags={stats.todasTags}
-      />
-
-      {/* Lista de funcionários */}
-      <div>
-        <h3 className="text-xl font-bold mb-4 text-gray-900">Detalhes por Funcionário</h3>
-        <FuncionariosList funcionarios={funcionariosFiltrados} />
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
