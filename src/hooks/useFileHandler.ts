@@ -57,47 +57,47 @@ export const useFileHandler = ({
     } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
       onProcessingStart();
       
-      // Primeiro, tentar processar a aba BANCO para dados mestres
+      // Para arquivos .xlsx, priorizar o processamento unificado
       if (fileName.endsWith('.xlsx')) {
+        console.log("🔍 [DEBUG] Iniciando processamento unificado para arquivo .xlsx");
+        
         processarArquivoXLSXBanco(file)
           .then(dadosUnificados => {
-            // CRITÉRIO DE ACEITE: Exibe os dados no console
-            console.log("🔍 [DEBUG] Hook 'useFileHandler' recebeu os dados processados da aba BANCO:", dadosUnificados);
+            console.log("🔍 [DEBUG] Dados unificados processados:", dadosUnificados);
             
-            // Se temos dados unificados, processar e enviar
+            // Se temos funcionários unificados, usar o fluxo unificado
             if (dadosUnificados.funcionariosUnificados && dadosUnificados.funcionariosUnificados.length > 0) {
-              console.log("🔍 [DEBUG] Processando funcionários unificados:", dadosUnificados.funcionariosUnificados.length);
+              console.log("🔍 [DEBUG] Usando fluxo unificado com", dadosUnificados.funcionariosUnificados.length, "funcionários");
               
-              // Chamar callback para dados unificados
+              // Callback principal para dados unificados
+              onUnifiedDataProcessed(dadosUnificados.funcionariosUnificados, file.name);
+              
+              // Callback adicional se definido
               if (onUnifiedDataLoaded) {
-                console.log("🔍 [DEBUG] Chamando onUnifiedDataLoaded com dados:", dadosUnificados.funcionariosUnificados);
                 onUnifiedDataLoaded(dadosUnificados.funcionariosUnificados);
               }
               
-              // Verificar se temos callback onUnifiedDataProcessed
-              if (onUnifiedDataProcessed) {
-                console.log("🔍 [DEBUG] Chamando onUnifiedDataProcessed com dados:", dadosUnificados.funcionariosUnificados);
-                onUnifiedDataProcessed(dadosUnificados.funcionariosUnificados, file.name);
+              // Callback de compatibilidade se definido
+              if (onXlsxDataLoaded && dadosUnificados.colaboradores) {
+                onXlsxDataLoaded({
+                  colaboradores: dadosUnificados.colaboradores
+                });
               }
-            }
-            
-            // Usa o callback para enviar os dados para o componente pai
-            if (onXlsxDataLoaded && dadosUnificados.colaboradores) {
-              onXlsxDataLoaded({
-                colaboradores: dadosUnificados.colaboradores
+              
+              console.log("✅ [DEBUG] Processamento unificado concluído com sucesso");
+            } else {
+              // Fallback para processamento de múltiplos períodos
+              console.log("🔄 [DEBUG] Fallback para processamento de múltiplos períodos");
+              return processarExcel(file).then(periodosDisponiveis => {
+                onMultiplePeriodsProcessed(periodosDisponiveis, file.name);
               });
             }
-            
-            // Continuar com processamento normal das abas de frequência
-            return processarExcel(file);
-          })
-          .then(periodosDisponiveis => {
-            console.log("🔍 [DEBUG] Processando períodos disponíveis:", periodosDisponiveis);
-            onMultiplePeriodsProcessed(periodosDisponiveis, file.name);
           })
           .catch(error => {
-            console.error('Erro ao processar Excel:', error);
-            // Se falhar com BANCO, tentar processamento normal
+            console.error('Erro ao processar Excel unificado:', error);
+            
+            // Fallback final para processamento tradicional
+            console.log("🔄 [DEBUG] Fallback final para processamento tradicional");
             processarExcel(file)
               .then(periodosDisponiveis => {
                 onMultiplePeriodsProcessed(periodosDisponiveis, file.name);
@@ -105,16 +105,13 @@ export const useFileHandler = ({
               .catch(fallbackError => {
                 console.error('Erro no processamento fallback:', fallbackError);
                 onError(fallbackError instanceof Error ? fallbackError.message : 'Erro ao processar arquivo Excel');
-              })
-              .finally(() => {
-                onProcessingEnd();
               });
           })
           .finally(() => {
             onProcessingEnd();
           });
       } else {
-        // Para arquivos .xls, usar apenas o processamento normal
+        // Para arquivos .xls, usar apenas o processamento tradicional
         processarExcel(file)
           .then(periodosDisponiveis => {
             onMultiplePeriodsProcessed(periodosDisponiveis, file.name);

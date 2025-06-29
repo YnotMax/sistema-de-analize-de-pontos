@@ -1,10 +1,10 @@
 // Mapeamento de tags de entrada para tags internas padronizadas
 export const mapeamentoTags: Record<string, string> = {
   // Tags para Presença Normal
+  '1': 'PRESENCA_NORMAL', // Adicionado mapeamento para "1"
   'P': 'PRESENCA_NORMAL',
   '100%': 'PRESENCA_NORMAL',
   '1:': 'PRESENCA_NORMAL',
-  '1': 'PRESENCA_NORMAL', // Adicionado mapeamento para "1"
   'PRESENTE': 'PRESENCA_NORMAL',
   'COMPARECEU': 'PRESENCA_NORMAL',
   

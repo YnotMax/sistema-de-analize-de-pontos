@@ -18,13 +18,6 @@ interface DashboardProps {
 }
 
 export const Dashboard = ({ funcionarios, funcionariosUnificados, fileName, onReset }: DashboardProps) => {
-  // Debug logs para verificar os dados recebidos
-  console.log("🔍 [DEBUG] Dashboard recebeu props:", {
-    funcionarios: funcionarios?.length || 0,
-    funcionariosUnificados: funcionariosUnificados?.length || 0,
-    fileName
-  });
-
   const [searchTerm, setSearchTerm] = useState('');
   const [filterTag, setFilterTag] = useState<string>('');
 
