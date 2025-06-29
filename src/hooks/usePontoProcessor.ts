@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { FuncionarioData } from '@/pages/Index';
 import { FuncionarioUnificado } from '@/utils/excel/types';
@@ -99,29 +100,38 @@ export const usePontoProcessor = () => {
     });
     setDadosOriginaisPorPeriodo(dadosOriginais);
     
-    // Selecionar automaticamente o período mais recente
-    if (periods.length > 0) {
-      const periodoMaisRecente = periods[periods.length - 1];
-      setPeriodoAtivo(periodoMaisRecente.id);
-      setFuncionarios(dadosOriginais.get(periodoMaisRecente.id) || []);
-      console.log('Período ativo definido:', periodoMaisRecente.id);
-    }
+    // Selecionar automaticamente "todos" para mostrar dados consolidados
+    setPeriodoAtivo('todos');
+    const funcionariosConsolidados = consolidarTodosPeriodos(periods, dadosOriginais);
+    setFuncionarios(funcionariosConsolidados);
+    console.log('Período ativo definido como "todos" com', funcionariosConsolidados.length, 'funcionários consolidados');
     
-    // Limpar dados unificados quando processamos períodos múltiplos
-    setFuncionariosUnificados([]);
+    // Criar funcionários unificados a partir dos consolidados
+    const funcionariosUnificados = funcionariosConsolidados.map(func => ({
+      matricula: func.matricula,
+      nome: func.nome,
+      cargo: func.cargo,
+      contadores: func.contadores,
+      idade: undefined,
+      lider: undefined
+    }));
+    setFuncionariosUnificados(funcionariosUnificados);
   };
 
-  const consolidarTodosPeriodos = (): FuncionarioData[] => {
+  const consolidarTodosPeriodos = (
+    periods: PeriodoData[] = periodosDisponiveis, 
+    dadosOriginais: Map<string, FuncionarioData[]> = dadosOriginaisPorPeriodo
+  ): FuncionarioData[] => {
     const funcionariosConsolidados: FuncionarioData[] = [];
     const funcionariosPorMatricula = new Map<string, FuncionarioData>();
     
-    periodosDisponiveis.forEach((periodo, indicePeriodo) => {
+    periods.forEach((periodo, indicePeriodo) => {
       console.log(`Consolidando período ${periodo.nome} com ${periodo.funcionarios.length} funcionários`);
       
       // Usar dados originais para evitar mutação
-      const dadosOriginais = dadosOriginaisPorPeriodo.get(periodo.id) || periodo.funcionarios;
+      const dadosOriginaisPeriodo = dadosOriginais.get(periodo.id) || periodo.funcionarios;
       
-      dadosOriginais.forEach((funcionario) => {
+      dadosOriginaisPeriodo.forEach((funcionario) => {
         const chaveUnica = funcionario.matricula || `sem-matricula-${funcionario.id}-${indicePeriodo}`;
         
         if (funcionariosPorMatricula.has(chaveUnica)) {
@@ -185,6 +195,17 @@ export const usePontoProcessor = () => {
       // Consolidar todos os funcionários de todos os períodos
       const funcionariosConsolidados = consolidarTodosPeriodos();
       setFuncionarios(funcionariosConsolidados);
+      
+      // Criar funcionários unificados a partir dos consolidados
+      const funcionariosUnificados = funcionariosConsolidados.map(func => ({
+        matricula: func.matricula,
+        nome: func.nome,
+        cargo: func.cargo,
+        contadores: func.contadores,
+        idade: undefined,
+        lider: undefined
+      }));
+      setFuncionariosUnificados(funcionariosUnificados);
     } else {
       // Período específico - usar dados originais
       const dadosOriginais = dadosOriginaisPorPeriodo.get(periodoId);
@@ -197,6 +218,17 @@ export const usePontoProcessor = () => {
           diasDetalhados: { ...f.diasDetalhados }
         }));
         setFuncionarios(funcionariosCopia);
+        
+        // Criar funcionários unificados a partir do período específico
+        const funcionariosUnificados = funcionariosCopia.map(func => ({
+          matricula: func.matricula,
+          nome: func.nome,
+          cargo: func.cargo,
+          contadores: func.contadores,
+          idade: undefined,
+          lider: undefined
+        }));
+        setFuncionariosUnificados(funcionariosUnificados);
       } else {
         console.error('Período não encontrado:', periodoId);
         setError(`Período ${periodoId} não encontrado`);

@@ -3,7 +3,6 @@ import { FileUpload } from '@/components/FileUpload';
 import { Dashboard } from '@/components/Dashboard';
 import { ProcessingStatus } from '@/components/ProcessingStatus';
 import { Header } from '@/components/Header';
-import { PeriodSelector } from '@/components/PeriodSelector';
 import { usePontoProcessor } from '@/hooks/usePontoProcessor';
 
 export interface FuncionarioData {
@@ -74,25 +73,16 @@ const Index = () => {
             {isProcessing && <ProcessingStatus />}
             
             {hasData && (
-              <>
-                {/* Seletor de período (só aparece para arquivos Excel com múltiplas abas) */}
-                {isMultiPeriod && (
-                  <PeriodSelector
-                    periodosDisponiveis={periodosDisponiveis}
-                    periodoAtivo={periodoAtivo}
-                    onPeriodoChange={handlePeriodoChange}
-                    fileName={fileName}
-                  />
-                )}
-                
-                {/* Dashboard */}
-                <Dashboard 
-                  funcionarios={funcionarios} 
-                  funcionariosUnificados={funcionariosUnificados}
-                  fileName={fileName}
-                  onReset={handleReset}
-                />
-              </>
+              <Dashboard 
+                funcionarios={funcionarios} 
+                funcionariosUnificados={funcionariosUnificados}
+                periodosDisponiveis={periodosDisponiveis}
+                periodoAtivo={periodoAtivo}
+                onPeriodoChange={handlePeriodoChange}
+                fileName={fileName}
+                isMultiPeriod={isMultiPeriod}
+                onReset={handleReset}
+              />
             )}
           </>
         )}
