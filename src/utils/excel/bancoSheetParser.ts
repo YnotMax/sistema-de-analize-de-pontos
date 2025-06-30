@@ -17,22 +17,23 @@ function normalizarString(str: string): string {
 }
 
 /**
- * Verifica se uma linha contém os cabeçalhos esperados
+ * Verifica se uma linha contém os cabeçalhos esperados de forma mais robusta
  */
 function isLinhaDosCabecalhos(linha: any[]): boolean {
   if (!linha || linha.length === 0) return false;
   
-  // Converte toda a linha em uma string normalizada para análise
-  const textoLinha = linha
-    .map(cell => normalizarString(cell || ''))
-    .filter(text => text.length > 0) // Remove células vazias
-    .join(' ');
+  // Normaliza todas as células da linha
+  const celulasNormalizadas = linha.map(cell => normalizarString(cell || ''));
   
-  console.log(`[isLinhaDosCabecalhos] Analisando linha: "${textoLinha}"`);
+  console.log(`[isLinhaDosCabecalhos] Analisando linha:`, celulasNormalizadas);
   
-  // Deve conter tanto MATRICULA quanto NOME para ser considerada linha de cabeçalho
-  const temMatricula = textoLinha.includes('MATRICULA');
-  const temNome = textoLinha.includes('NOME');
+  // Verifica se existe pelo menos uma célula com MATRICULA e uma com NOME
+  const temMatricula = celulasNormalizadas.some(cell => 
+    cell.includes('MATRICULA') || cell.includes('MATRÍCULA')
+  );
+  const temNome = celulasNormalizadas.some(cell => 
+    cell.includes('NOME')
+  );
   
   console.log(`[isLinhaDosCabecalhos] MATRICULA: ${temMatricula}, NOME: ${temNome}`);
   
@@ -109,7 +110,7 @@ export function parsePlanilhaBanco(sheet: XLSX.WorkSheet): Map<string, Colaborad
   console.log("[parsePlanilhaBanco] 📋 Cabeçalho normalizado:", cabecalho.map(cell => normalizarString(cell || '')));
 
   const colunas = {
-    matricula: encontrarIndiceDaColuna(cabecalho, ['MATRICULA']),
+    matricula: encontrarIndiceDaColuna(cabecalho, ['MATRICULA', 'MATRÍCULA']),
     nome: encontrarIndiceDaColuna(cabecalho, ['NOME']),
     cargo: encontrarIndiceDaColuna(cabecalho, ['CARGO', 'FUNCAO', 'FUNÇÃO']),
     idade: encontrarIndiceDaColuna(cabecalho, ['IDADE']),
