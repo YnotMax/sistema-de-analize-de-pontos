@@ -36,13 +36,33 @@ export const calcularContadoresDeFrequencia = (
 
   const cabecalho = dadosDaGrade[indiceCabecalho];
   
-  // Identificar onde começam os dias
-  const indiceDias = cabecalho.findIndex(col => 
-    col && (col.toString().includes('-') || /\d+/.test(col.toString()) || col.toString().includes('mai'))
-  );
+  // CORREÇÃO: Identificar onde começam os dias de forma mais rigorosa
+  // Procurar pelo padrão específico d-mmm (ex: 1-JAN, 2-FEV) ou apenas números de dias
+  const indiceDias = cabecalho.findIndex(col => {
+    if (!col) return false;
+    const texto = col.toString().trim();
+    
+    // Padrão d-mmm (1-JAN, 2-FEV, etc.) - comum em Excel
+    const padraoDiaMes = /^\d{1,2}-[A-Za-z]{3}$/;
+    
+    // Padrão apenas número (1, 2, 3, etc.) - comum em CSV simples
+    const padraoNumero = /^\d{1,2}$/;
+    
+    // Padrão com hífen e mês por extenso (1-mai, 2-mai, etc.)
+    const padraoMesExtenso = /^\d{1,2}-[a-zA-Z]{3,}/;
+    
+    const match = padraoDiaMes.test(texto) || padraoNumero.test(texto) || padraoMesExtenso.test(texto);
+    
+    if (match) {
+      console.log(`[frequenciaProcessor] Primeira coluna de dia detectada: "${texto}" na posição ${cabecalho.indexOf(col)}`);
+    }
+    
+    return match;
+  });
   
   if (indiceDias === -1) {
     console.warn(`[frequenciaProcessor] Colunas de dias não encontradas em: ${nomeOrigem}`);
+    console.log(`[frequenciaProcessor] Cabeçalho analisado:`, cabecalho);
     return [];
   }
 

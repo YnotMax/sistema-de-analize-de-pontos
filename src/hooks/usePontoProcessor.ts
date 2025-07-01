@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { FuncionarioData } from '@/pages/Index';
 import { FuncionarioUnificado } from '@/utils/excel/types';
@@ -19,7 +20,10 @@ export const usePontoProcessor = () => {
   const [error, setError] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string>('');
   const [isMultiPeriod, setIsMultiPeriod] = useState(false);
+  
+  // Estados para gestão robusta de dados por período
   const [dadosOriginaisPorPeriodo, setDadosOriginaisPorPeriodo] = useState<Map<string, FuncionarioData[]>>(new Map());
+  const [dadosConsolidados, setDadosConsolidados] = useState<FuncionarioData[]>([]);
 
   // Função auxiliar para converter FuncionarioUnificado para FuncionarioData
   const converterUnificadoParaData = (funcionarioUnificado: FuncionarioUnificado): FuncionarioData => {
@@ -58,6 +62,7 @@ export const usePontoProcessor = () => {
     setPeriodosDisponiveis([]);
     setPeriodoAtivo('');
     setDadosOriginaisPorPeriodo(new Map());
+    setDadosConsolidados([]);
     
     // Converter para funcionários unificados
     const funcionariosUnificados = data.map(converterDataParaUnificado);
@@ -93,6 +98,7 @@ export const usePontoProcessor = () => {
     setPeriodosDisponiveis([]);
     setPeriodoAtivo('');
     setDadosOriginaisPorPeriodo(new Map());
+    setDadosConsolidados([]);
     
     console.log('✅ Dados unificados processados no hook:', data);
   };
@@ -117,9 +123,12 @@ export const usePontoProcessor = () => {
     });
     setDadosOriginaisPorPeriodo(dadosOriginais);
     
+    // Consolidar todos os períodos para dados "todos"
+    const funcionariosConsolidados = consolidarTodosPeriodos(periods, dadosOriginais);
+    setDadosConsolidados(funcionariosConsolidados);
+    
     // Selecionar automaticamente "todos" para mostrar dados consolidados
     setPeriodoAtivo('todos');
-    const funcionariosConsolidados = consolidarTodosPeriodos(periods, dadosOriginais);
     setFuncionarios(funcionariosConsolidados);
     console.log('Período ativo definido como "todos" com', funcionariosConsolidados.length, 'funcionários consolidados');
     
@@ -202,12 +211,11 @@ export const usePontoProcessor = () => {
     setPeriodoAtivo(periodoId);
     
     if (periodoId === 'todos') {
-      // Consolidar todos os funcionários de todos os períodos
-      const funcionariosConsolidados = consolidarTodosPeriodos();
-      setFuncionarios(funcionariosConsolidados);
+      // Usar dados consolidados já calculados
+      setFuncionarios(dadosConsolidados);
       
       // Criar funcionários unificados a partir dos consolidados
-      const funcionariosUnificados = funcionariosConsolidados.map(converterDataParaUnificado);
+      const funcionariosUnificados = dadosConsolidados.map(converterDataParaUnificado);
       setFuncionariosUnificados(funcionariosUnificados);
     } else {
       // Período específico - usar dados originais
@@ -256,6 +264,7 @@ export const usePontoProcessor = () => {
     setIsProcessing(false);
     setIsMultiPeriod(false);
     setDadosOriginaisPorPeriodo(new Map());
+    setDadosConsolidados([]);
   };
 
   return {

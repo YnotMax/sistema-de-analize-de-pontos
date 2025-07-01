@@ -131,8 +131,8 @@ export const Dashboard = ({
             <div>
               <h3 className="text-xl font-bold mb-4 text-gray-900">Análise de Frequência</h3>
               <div className="grid gap-6">
-                {/* Primeira linha - Gráfico principal de ocorrências */}
-                <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
+                {/* Primeira linha - Gráfico principal de ocorrências e ranking */}
+                <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3 h-[400px]">
                   <div className="lg:col-span-2">
                     <OccurrenceChart funcionarios={funcionariosUnificados} />
                   </div>
