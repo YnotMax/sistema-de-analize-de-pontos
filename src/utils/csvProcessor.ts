@@ -13,7 +13,6 @@ export const processarCSV = (textoCSV: string, filename: string): FuncionarioDat
   });
 
   console.log('[csvProcessor] CSV parseado:', resultado.data.length, 'linhas');
-  console.log('[csvProcessor] Primeiras 5 linhas:', resultado.data.slice(0, 5));
 
   if (resultado.data.length === 0) {
     throw new Error('Arquivo CSV vazio ou não foi possível fazer o parse.');
@@ -27,6 +26,5 @@ export const processarCSV = (textoCSV: string, filename: string): FuncionarioDat
   }
 
   console.log('[csvProcessor] Funcionários processados:', funcionarios.length);
-  console.log('[csvProcessor] Exemplo de funcionário processado:', funcionarios[0]);
   return funcionarios;
 };

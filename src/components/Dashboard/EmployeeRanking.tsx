@@ -23,14 +23,14 @@ export function EmployeeRanking({ funcionarios }: EmployeeRankingProps) {
 
   if (!funcionarios || funcionarios.length === 0) {
     return (
-      <Card className="h-full flex flex-col">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
             Ranking de Funcionários
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex-1 flex items-center justify-center">
+        <CardContent className="h-[350px] flex items-center justify-center">
           <p className="text-muted-foreground">Nenhum dado disponível</p>
         </CardContent>
       </Card>
@@ -50,8 +50,8 @@ export function EmployeeRanking({ funcionarios }: EmployeeRankingProps) {
   const metricaAtual = METRICAS_DISPONIVEIS.find(m => m.key === metricaSelecionada);
 
   return (
-    <Card className="h-full flex flex-col">
-      <CardHeader className="flex-shrink-0">
+    <Card>
+      <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
@@ -71,9 +71,9 @@ export function EmployeeRanking({ funcionarios }: EmployeeRankingProps) {
           </Select>
         </div>
       </CardHeader>
-      <CardContent className="flex-1 overflow-y-auto">
+      <CardContent>
         {funcionariosRankeados.length === 0 ? (
-          <div className="h-full flex items-center justify-center">
+          <div className="h-[300px] flex items-center justify-center">
             <p className="text-muted-foreground">
               Nenhum funcionário com {metricaAtual?.label.toLowerCase()} registradas
             </p>
@@ -82,11 +82,11 @@ export function EmployeeRanking({ funcionarios }: EmployeeRankingProps) {
           <div className="space-y-4">
             {funcionariosRankeados.map((funcionario, index) => (
               <div key={funcionario.matricula} className="flex items-center gap-3 p-3 rounded-lg border bg-card">
-                <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="flex items-center gap-3 flex-1">
                   <div className="text-lg font-bold text-muted-foreground min-w-[24px]">
                     #{index + 1}
                   </div>
-                  <Avatar className="h-10 w-10 flex-shrink-0">
+                  <Avatar className="h-10 w-10">
                     <AvatarFallback className="bg-primary/10">
                       <User className="h-5 w-5" />
                     </AvatarFallback>
@@ -96,7 +96,7 @@ export function EmployeeRanking({ funcionarios }: EmployeeRankingProps) {
                     <p className="text-sm text-muted-foreground truncate">{funcionario.cargo}</p>
                   </div>
                 </div>
-                <Badge className={`${metricaAtual?.color} flex-shrink-0`}>
+                <Badge className={metricaAtual?.color}>
                   {funcionario.valorMetrica} {metricaAtual?.label.toLowerCase()}
                 </Badge>
               </div>
