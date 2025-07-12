@@ -1,6 +1,5 @@
 
-import { useState } from "react";
-import { Home, BarChart3, Users, Settings, TrendingUp, Clock, User } from "lucide-react";
+import { Home, BarChart3, Users, Settings, TrendingUp, User } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -27,7 +26,7 @@ const configItems = [
 ];
 
 export function AppSidebar() {
-  const { collapsed } = useSidebar();
+  const { state } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
 
@@ -37,7 +36,7 @@ export function AppSidebar() {
     active ? "bg-muted text-primary font-medium" : "hover:bg-muted/50";
 
   return (
-    <Sidebar className={collapsed ? "w-14" : "w-60"} collapsible>
+    <Sidebar collapsible="icon">
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Análises</SidebarGroupLabel>
@@ -51,7 +50,7 @@ export function AppSidebar() {
                       className={getNavClass(isActive(item.url))}
                     >
                       <item.icon className="mr-2 h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
+                      {state !== "collapsed" && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -72,7 +71,7 @@ export function AppSidebar() {
                       className={getNavClass(isActive(item.url))}
                     >
                       <item.icon className="mr-2 h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
+                      {state !== "collapsed" && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

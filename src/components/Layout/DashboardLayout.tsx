@@ -12,7 +12,7 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children, fileName, onReset }: DashboardLayoutProps) {
   return (
-    <SidebarProvider collapsedWidth={56}>
+    <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
         <AppSidebar />
         

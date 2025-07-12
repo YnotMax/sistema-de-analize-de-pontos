@@ -1,3 +1,4 @@
+
 import { FileUpload } from '@/components/FileUpload';
 import { DashboardLayout } from '@/components/Layout/DashboardLayout';
 import { AssiduidadeKPIs } from '@/components/Dashboard/AssiduidadeKPIs';
@@ -76,7 +77,7 @@ const Index = () => {
     <DashboardLayout fileName={fileName} onReset={handleReset}>
       <div className="space-y-8">
         {/* Seletor de Período */}
-        {isMultiPeriod && periodosDisponiveis.length > 0 && onPeriodoChange && (
+        {isMultiPeriod && periodosDisponiveis.length > 0 && handlePeriodoChange && (
           <PeriodSelector
             periodosDisponiveis={periodosDisponiveis}
             periodoAtivo={periodoAtivo}
