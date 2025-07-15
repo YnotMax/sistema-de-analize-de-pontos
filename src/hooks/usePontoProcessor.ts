@@ -21,34 +21,6 @@ export const usePontoProcessor = () => {
   const [isMultiPeriod, setIsMultiPeriod] = useState(false);
   const [dadosOriginaisPorPeriodo, setDadosOriginaisPorPeriodo] = useState<Map<string, FuncionarioData[]>>(new Map());
 
-  // Função auxiliar para converter FuncionarioUnificado para FuncionarioData
-  const converterUnificadoParaData = (funcionarioUnificado: FuncionarioUnificado): FuncionarioData => {
-    return {
-      id: Math.random(), // Gerar ID temporário
-      matricula: funcionarioUnificado.matricula,
-      nome: funcionarioUnificado.nome,
-      cargo: funcionarioUnificado.cargo,
-      contadores: { ...funcionarioUnificado.contadores },
-      totalDias: funcionarioUnificado.totalDias,
-      diasDetalhados: { ...funcionarioUnificado.diasDetalhados }
-    };
-  };
-
-  // Função auxiliar para converter FuncionarioData para FuncionarioUnificado
-  const converterDataParaUnificado = (funcionarioData: FuncionarioData): FuncionarioUnificado => {
-    return {
-      matricula: funcionarioData.matricula,
-      nome: funcionarioData.nome,
-      cargo: funcionarioData.cargo,
-      contadores: { ...funcionarioData.contadores },
-      totalDias: funcionarioData.totalDias,
-      diasDetalhados: { ...funcionarioData.diasDetalhados },
-      idade: undefined,
-      lider: undefined,
-      dataAdmissao: undefined
-    };
-  };
-
   const handleFileProcessed = (data: FuncionarioData[], filename: string) => {
     console.log("🔍 [DEBUG] handleFileProcessed chamado com:", data.length, "funcionários");
     setFuncionarios(data);
@@ -58,10 +30,7 @@ export const usePontoProcessor = () => {
     setPeriodosDisponiveis([]);
     setPeriodoAtivo('');
     setDadosOriginaisPorPeriodo(new Map());
-    
-    // Converter para funcionários unificados
-    const funcionariosUnificados = data.map(converterDataParaUnificado);
-    setFuncionariosUnificados(funcionariosUnificados);
+    setFuncionariosUnificados([]);
   };
 
   const handleUnifiedDataProcessed = (data: FuncionarioUnificado[], filename: string) => {
@@ -79,20 +48,14 @@ export const usePontoProcessor = () => {
       console.log("🔍 [DEBUG] Total de contadores do primeiro funcionário:", totalContadores);
     }
     
-    // Atualizar estado dos funcionários unificados
     setFuncionariosUnificados(data);
-    
-    // CORREÇÃO: Também atualizar o estado de funcionários para a tabela de detalhes
-    const funcionariosConvertidos = data.map(converterUnificadoParaData);
-    setFuncionarios(funcionariosConvertidos);
-    console.log("🔍 [DEBUG] Funcionários convertidos para tabela:", funcionariosConvertidos.length);
-    
     setFileName(filename);
     setError(null);
-    setIsMultiPeriod(false);
+    setIsMultiPeriod(false); // Dados unificados não precisam de seletor de período
     setPeriodosDisponiveis([]);
     setPeriodoAtivo('');
     setDadosOriginaisPorPeriodo(new Map());
+    setFuncionarios([]); // Limpar funcionários normais quando temos dados unificados
     
     console.log('✅ Dados unificados processados no hook:', data);
   };
@@ -117,31 +80,29 @@ export const usePontoProcessor = () => {
     });
     setDadosOriginaisPorPeriodo(dadosOriginais);
     
-    // Selecionar automaticamente "todos" para mostrar dados consolidados
-    setPeriodoAtivo('todos');
-    const funcionariosConsolidados = consolidarTodosPeriodos(periods, dadosOriginais);
-    setFuncionarios(funcionariosConsolidados);
-    console.log('Período ativo definido como "todos" com', funcionariosConsolidados.length, 'funcionários consolidados');
+    // Selecionar automaticamente o período mais recente
+    if (periods.length > 0) {
+      const periodoMaisRecente = periods[periods.length - 1];
+      setPeriodoAtivo(periodoMaisRecente.id);
+      setFuncionarios(dadosOriginais.get(periodoMaisRecente.id) || []);
+      console.log('Período ativo definido:', periodoMaisRecente.id);
+    }
     
-    // Criar funcionários unificados a partir dos consolidados
-    const funcionariosUnificados = funcionariosConsolidados.map(converterDataParaUnificado);
-    setFuncionariosUnificados(funcionariosUnificados);
+    // Limpar dados unificados quando processamos períodos múltiplos
+    setFuncionariosUnificados([]);
   };
 
-  const consolidarTodosPeriodos = (
-    periods: PeriodoData[] = periodosDisponiveis, 
-    dadosOriginais: Map<string, FuncionarioData[]> = dadosOriginaisPorPeriodo
-  ): FuncionarioData[] => {
+  const consolidarTodosPeriodos = (): FuncionarioData[] => {
     const funcionariosConsolidados: FuncionarioData[] = [];
     const funcionariosPorMatricula = new Map<string, FuncionarioData>();
     
-    periods.forEach((periodo, indicePeriodo) => {
+    periodosDisponiveis.forEach((periodo, indicePeriodo) => {
       console.log(`Consolidando período ${periodo.nome} com ${periodo.funcionarios.length} funcionários`);
       
       // Usar dados originais para evitar mutação
-      const dadosOriginaisPeriodo = dadosOriginais.get(periodo.id) || periodo.funcionarios;
+      const dadosOriginais = dadosOriginaisPorPeriodo.get(periodo.id) || periodo.funcionarios;
       
-      dadosOriginaisPeriodo.forEach((funcionario) => {
+      dadosOriginais.forEach((funcionario) => {
         const chaveUnica = funcionario.matricula || `sem-matricula-${funcionario.id}-${indicePeriodo}`;
         
         if (funcionariosPorMatricula.has(chaveUnica)) {
@@ -205,10 +166,6 @@ export const usePontoProcessor = () => {
       // Consolidar todos os funcionários de todos os períodos
       const funcionariosConsolidados = consolidarTodosPeriodos();
       setFuncionarios(funcionariosConsolidados);
-      
-      // Criar funcionários unificados a partir dos consolidados
-      const funcionariosUnificados = funcionariosConsolidados.map(converterDataParaUnificado);
-      setFuncionariosUnificados(funcionariosUnificados);
     } else {
       // Período específico - usar dados originais
       const dadosOriginais = dadosOriginaisPorPeriodo.get(periodoId);
@@ -221,10 +178,6 @@ export const usePontoProcessor = () => {
           diasDetalhados: { ...f.diasDetalhados }
         }));
         setFuncionarios(funcionariosCopia);
-        
-        // Criar funcionários unificados a partir do período específico
-        const funcionariosUnificados = funcionariosCopia.map(converterDataParaUnificado);
-        setFuncionariosUnificados(funcionariosUnificados);
       } else {
         console.error('Período não encontrado:', periodoId);
         setError(`Período ${periodoId} não encontrado`);

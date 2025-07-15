@@ -36,26 +36,10 @@ export const calcularContadoresDeFrequencia = (
 
   const cabecalho = dadosDaGrade[indiceCabecalho];
   
-  // Identificar onde começam os dias - padrão mais específico para d-mmm (1-JAN, 2-FEV, etc.)
-  const indiceDias = cabecalho.findIndex(col => {
-    if (!col) return false;
-    const colStr = col.toString().trim();
-    // Procurar por padrões específicos de data: d-mmm, dd-mmm, ou apenas números seguidos de hífen
-    return /^\d{1,2}-[A-Za-z]{3}/i.test(colStr) || 
-           /^\d{1,2}$/.test(colStr) || 
-           colStr.includes('mai') || 
-           colStr.includes('jan') || 
-           colStr.includes('fev') || 
-           colStr.includes('mar') || 
-           colStr.includes('abr') || 
-           colStr.includes('jun') || 
-           colStr.includes('jul') || 
-           colStr.includes('ago') || 
-           colStr.includes('set') || 
-           colStr.includes('out') || 
-           colStr.includes('nov') || 
-           colStr.includes('dez');
-  });
+  // Identificar onde começam os dias
+  const indiceDias = cabecalho.findIndex(col => 
+    col && (col.toString().includes('-') || /\d+/.test(col.toString()) || col.toString().includes('mai'))
+  );
   
   if (indiceDias === -1) {
     console.warn(`[frequenciaProcessor] Colunas de dias não encontradas em: ${nomeOrigem}`);
