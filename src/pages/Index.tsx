@@ -2,7 +2,7 @@
 import { FileUpload } from '@/components/FileUpload';
 import { DashboardLayout } from '@/components/Layout/DashboardLayout';
 import { AssiduidadeKPIs } from '@/components/Dashboard/AssiduidadeKPIs';
-import { ComparisonByCargo } from '@/components/Dashboard/ComparisonByCargo';
+import { ComparisonByRole } from '@/components/Dashboard/ComparisonByRole';
 import { OccurrenceChart } from '@/components/Dashboard/OccurrenceChart';
 import { EmployeeRanking } from '@/components/Dashboard/EmployeeRanking';
 import { PeriodSelector } from '@/components/PeriodSelector';
@@ -108,7 +108,7 @@ const Index = () => {
                 </div>
                 
                 {/* Segunda linha - Comparativo por cargo */}
-                <ComparisonByCargo funcionarios={funcionariosUnificados} />
+                <ComparisonByRole funcionarios={funcionariosUnificados} />
               </>
             )}
           </div>

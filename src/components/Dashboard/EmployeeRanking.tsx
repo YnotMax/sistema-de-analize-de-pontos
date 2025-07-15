@@ -50,8 +50,8 @@ export function EmployeeRanking({ funcionarios }: EmployeeRankingProps) {
   const metricaAtual = METRICAS_DISPONIVEIS.find(m => m.key === metricaSelecionada);
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="h-full flex flex-col">
+      <CardHeader className="flex-shrink-0">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
@@ -71,7 +71,7 @@ export function EmployeeRanking({ funcionarios }: EmployeeRankingProps) {
           </Select>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1 overflow-y-auto">
         {funcionariosRankeados.length === 0 ? (
           <div className="h-[300px] flex items-center justify-center">
             <p className="text-muted-foreground">
@@ -79,7 +79,7 @@ export function EmployeeRanking({ funcionarios }: EmployeeRankingProps) {
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-4 max-h-[400px] overflow-y-auto">
             {funcionariosRankeados.map((funcionario, index) => (
               <div key={funcionario.matricula} className="flex items-center gap-3 p-3 rounded-lg border bg-card">
                 <div className="flex items-center gap-3 flex-1">
