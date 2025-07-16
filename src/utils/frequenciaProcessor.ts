@@ -1,6 +1,7 @@
 
 import { FuncionarioData } from '@/pages/Index';
 import { normalizarTag } from '@/utils/tagMapping';
+import { formatarNomeDia } from '@/utils/dateUtils';
 
 /**
  * Função genérica para calcular contadores de frequência a partir de dados em formato de grade.
@@ -18,12 +19,31 @@ export const calcularContadoresDeFrequencia = (
 
   // Encontrar linha do cabeçalho
   let indiceCabecalho = -1;
+  
+  // Prioridade 1: Buscar estrutura específica da linha 4 (baseado na análise)
+  // Procura por colunas: IT., BD, MAT., NOME, CARGO
   for (let i = 0; i < dadosDaGrade.length; i++) {
     const linha = dadosDaGrade[i];
-    if (linha.some(col => col && col.toString().includes('NOME')) && 
+    if (linha.some(col => col && col.toString().includes('IT.')) &&
+        linha.some(col => col && col.toString().includes('MAT.')) &&
+        linha.some(col => col && col.toString().includes('NOME')) && 
         linha.some(col => col && col.toString().includes('CARGO'))) {
       indiceCabecalho = i;
+      console.log(`[frequenciaProcessor] Cabeçalho específico encontrado na linha ${i} em: ${nomeOrigem}`);
       break;
+    }
+  }
+  
+  // Fallback: Manter busca original por compatibilidade
+  if (indiceCabecalho === -1) {
+    for (let i = 0; i < dadosDaGrade.length; i++) {
+      const linha = dadosDaGrade[i];
+      if (linha.some(col => col && col.toString().includes('NOME')) && 
+          linha.some(col => col && col.toString().includes('CARGO'))) {
+        indiceCabecalho = i;
+        console.log(`[frequenciaProcessor] Cabeçalho fallback encontrado na linha ${i} em: ${nomeOrigem}`);
+        break;
+      }
     }
   }
 
@@ -40,9 +60,24 @@ export const calcularContadoresDeFrequencia = (
   const indiceDias = cabecalho.findIndex(col => {
     if (!col) return false;
     const colStr = col.toString().trim();
-    // Padrão específico para datas: d-mmm (ex: 1-JAN, 2-FEV) ou apenas números para dias
-    return /^\d{1,2}-[A-Z]{3}$/i.test(colStr) || 
-           (/^\d{1,2}$/.test(colStr) && parseInt(colStr) >= 1 && parseInt(colStr) <= 31);
+    
+    // Padrão 1: d-mmm (ex: 1-JAN, 2-FEV) 
+    if (/^\d{1,2}-[A-Z]{3}$/i.test(colStr)) {
+      return true;
+    }
+    
+    // Padrão 2: Números seriais do Excel (ex: 45627, 45628) - detecta números > 40000
+    const numero = parseInt(colStr);
+    if (!isNaN(numero) && numero > 40000 && numero < 60000) {
+      return true;
+    }
+    
+    // Padrão 3: Apenas números de dias (1-31)
+    if (/^\d{1,2}$/.test(colStr) && numero >= 1 && numero <= 31) {
+      return true;
+    }
+    
+    return false;
   });
   
   if (indiceDias === -1) {
@@ -60,11 +95,16 @@ export const calcularContadoresDeFrequencia = (
     
     // Só processar se for linha de funcionário (começa com número)
     if (linha[0] && linha[0].toString().match(/^\d+$/)) {
+      // Encontrar índices das colunas baseado no cabeçalho
+      const indiceMatricula = cabecalho.findIndex(col => col && col.toString().includes('MAT'));
+      const indiceNome = cabecalho.findIndex(col => col && col.toString().includes('NOME'));
+      const indiceCargo = cabecalho.findIndex(col => col && col.toString().includes('CARGO'));
+      
       const funcionario: FuncionarioData = {
         id: parseInt(linha[0].toString()),
-        matricula: linha[2]?.toString() || '',
-        nome: linha[3]?.toString() || '',
-        cargo: linha[4]?.toString() || '',
+        matricula: (indiceMatricula !== -1 ? linha[indiceMatricula]?.toString() : linha[2]?.toString()) || '',
+        nome: (indiceNome !== -1 ? linha[indiceNome]?.toString() : linha[3]?.toString()) || '',
+        cargo: (indiceCargo !== -1 ? linha[indiceCargo]?.toString() : linha[4]?.toString()) || '',
         contadores: {},
         totalDias: 0,
         diasDetalhados: {}
@@ -83,8 +123,9 @@ export const calcularContadoresDeFrequencia = (
           
           console.log(`[${nomeOrigem}] ${funcionario.nome} - Tag original: "${statusLimpo}" -> Tag normalizada: "${statusNormalizado}"`);
           
-          // Armazenar o status original nos detalhes
-          funcionario.diasDetalhados[nomeDia] = statusLimpo;
+          // Armazenar o status original nos detalhes com nome do dia formatado
+          const nomeFormatado = formatarNomeDia(nomeDia);
+          funcionario.diasDetalhados[nomeFormatado] = statusLimpo;
           
           // Usar a tag NORMALIZADA para os contadores
           if (funcionario.contadores[statusNormalizado]) {

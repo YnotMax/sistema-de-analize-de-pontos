@@ -145,12 +145,25 @@ function unificarDados(
 
 /**
  * Verifica se o nome de uma aba corresponde a um padrão de mês/ano.
+ * Detecta padrões como: "JAN 25", "FEV 25", "DEZ 24", etc.
  */
 function isAbaDeFrequencia(sheetName: string): boolean {
-  const nomeAba = sheetName.toUpperCase();
+  const nomeAba = sheetName.toUpperCase().trim();
   const meses = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
   
-  // Verifica se a aba começa com um dos meses e não é a aba BANCO
+  // Ignora abas especiais
+  const abasEspeciais = ['BANCO', 'LISTA', 'ORGANOGRAMA', 'ABS', 'ABSENTEÍSMO', 'ABSENTEISMO'];
+  if (abasEspeciais.some(aba => nomeAba.includes(aba))) {
+    return false;
+  }
+  
+  // Verifica padrão "MMM AA" (ex: "JAN 25", "DEZ 24")
+  const padrao1 = /^(JAN|FEV|MAR|ABR|MAI|JUN|JUL|AGO|SET|OUT|NOV|DEZ)\s+\d{2}$/;
+  if (padrao1.test(nomeAba)) {
+    return true;
+  }
+  
+  // Mantém compatibilidade com detecção anterior (só começa com mês)
   const isMonth = meses.some(mes => nomeAba.startsWith(mes));
   const isBanco = nomeAba.includes('BANCO');
   
