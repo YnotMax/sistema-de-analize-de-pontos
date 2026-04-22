@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { FuncionarioUnificado } from "@/utils/excel/types";
 
 interface OccurrenceChartProps {
-  funcionarios: FuncionarioUnificado[];
+  funcionarios: any[];
 }
 
 // Lista de tags que queremos exibir no gráfico. Podemos expandir isso.

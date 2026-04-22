@@ -61,8 +61,8 @@ export const calcularContadoresDeFrequencia = (
     if (!col) return false;
     const colStr = col.toString().trim();
     
-    // Padrão 1: d-mmm (ex: 1-JAN, 2-FEV) 
-    if (/^\d{1,2}-[A-Z]{3}$/i.test(colStr)) {
+    // Padrão 1: d-mmm (ex: 1-JAN, 2-fev.) 
+    if (/^\d{1,2}-[A-Z]{3}\.?$/i.test(colStr)) {
       return true;
     }
     

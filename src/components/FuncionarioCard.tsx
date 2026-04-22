@@ -38,30 +38,30 @@ export const FuncionarioCard = ({ funcionario }: FuncionarioCardProps) => {
                      funcionario.contadores['100% (C/ ATRASO)'] > 3;
 
   return (
-    <Card className={`transition-all duration-200 hover:shadow-md ${hasProblems ? 'ring-2 ring-red-100' : ''}`}>
-      <CardHeader className="pb-3">
+    <Card className={`transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-white/80 backdrop-blur-md border border-white/50 rounded-2xl overflow-hidden ${hasProblems ? 'ring-2 ring-red-200 shadow-red-50' : 'shadow-sm'}`}>
+      <CardHeader className="pb-3 px-6 pt-6">
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
+            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-sm shadow-blue-200 flex items-center justify-center text-white font-bold text-lg">
               {funcionario.nome.split(' ').map(n => n[0]).join('').substring(0, 2)}
             </div>
             
-            <div className="flex-1">
-              <h4 className="font-semibold text-gray-900 text-lg leading-tight">
+            <div className="flex-1 mt-1">
+              <h4 className="font-bold text-slate-800 text-lg leading-tight">
                 {funcionario.nome}
               </h4>
               
-              <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-gray-600">
-                <div className="flex items-center gap-1">
-                  <Briefcase className="w-3 h-3" />
-                  {funcionario.cargo}
+              <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-slate-500">
+                <div className="flex items-center gap-1.5 bg-slate-100/50 px-2.5 py-1 rounded-md">
+                  <Briefcase className="w-3.5 h-3.5 text-blue-500" />
+                  <span className="font-medium text-slate-600">{funcionario.cargo}</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <IdCard className="w-3 h-3" />
+                <div className="flex items-center gap-1.5 text-slate-400">
+                  <IdCard className="w-3.5 h-3.5" />
                   Mat. {funcionario.matricula}
                 </div>
-                <div className="flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />
+                <div className="flex items-center gap-1.5 text-slate-400">
+                  <Calendar className="w-3.5 h-3.5" />
                   {funcionario.totalDias} dias
                 </div>
               </div>
@@ -69,22 +69,22 @@ export const FuncionarioCard = ({ funcionario }: FuncionarioCardProps) => {
           </div>
 
           {hasProblems && (
-            <Badge variant="destructive" className="ml-2">
+            <Badge variant="destructive" className="ml-2 bg-red-100 text-red-700 hover:bg-red-200 border-none px-3 py-1 rounded-full shadow-none">
               Atenção
             </Badge>
           )}
         </div>
       </CardHeader>
 
-      <CardContent className="pt-0">
+      <CardContent className="px-6 pb-6 pt-2">
         <div className="space-y-4">
           {/* Tags principais */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 mt-2">
             {topTags.map(([tag, count]) => (
               <Badge 
                 key={tag} 
                 variant="secondary"
-                className={`${getTagColor(tag)} font-medium`}
+                className={`${getTagColor(tag)} font-medium px-3 py-1 rounded-lg border border-white/20 shadow-sm`}
               >
                 {tag}: {count}
               </Badge>
@@ -96,7 +96,7 @@ export const FuncionarioCard = ({ funcionario }: FuncionarioCardProps) => {
             variant="ghost"
             size="sm"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="w-full justify-center gap-2 text-gray-600 hover:text-gray-900"
+            className="w-full justify-center gap-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl mt-4 transition-colors"
           >
             {isExpanded ? 'Ocultar detalhes' : 'Ver todos os detalhes'}
             {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -104,18 +104,18 @@ export const FuncionarioCard = ({ funcionario }: FuncionarioCardProps) => {
 
           {/* Detalhes expandidos */}
           {isExpanded && (
-            <div className="border-t pt-4 space-y-3">
-              <h5 className="font-medium text-gray-900">Todas as ocorrências:</h5>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="border-t border-slate-100 pt-5 space-y-4 animate-in fade-in slide-in-from-top-2">
+              <h5 className="font-semibold text-slate-700">Todas as ocorrências do período:</h5>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {Object.entries(funcionario.contadores)
                   .sort(([,a], [,b]) => b - a)
                   .map(([tag, count]) => (
                     <div 
                       key={tag}
-                      className={`p-2 rounded-lg text-sm ${getTagColor(tag)}`}
+                      className={`p-3 rounded-xl text-sm border border-white/50 shadow-sm flex flex-col justify-between h-full ${getTagColor(tag)}`}
                     >
-                      <div className="font-medium">{tag}</div>
-                      <div className="text-xs opacity-75">{count} vez{count !== 1 ? 'es' : ''}</div>
+                      <div className="font-semibold mb-1">{tag}</div>
+                      <div className="text-sm font-medium opacity-80">{count} registro{count !== 1 ? 's' : ''}</div>
                     </div>
                   ))}
               </div>

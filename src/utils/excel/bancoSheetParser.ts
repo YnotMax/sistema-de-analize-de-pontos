@@ -11,10 +11,18 @@ export function parsePlanilhaBanco(sheet: XLSX.WorkSheet): Map<string, Colaborad
   const dadosJson = XLSX.utils.sheet_to_json<any[]>(sheet, { header: 1, defval: "" });
   const mapaColaboradores = new Map<string, ColaboradorInfo>();
 
+  // Função para normalizar strings (remove acentos e espaços extras)
+  const normalizar = (str: any) => 
+    typeof str === 'string' 
+      ? str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toUpperCase() 
+      : String(str || '').toUpperCase();
+
   // 1. Encontrar o cabeçalho dinamicamente
-  const indiceCabecalho = dadosJson.findIndex(row => 
-    row.includes('MATRICULA') && row.includes('NOME')
-  );
+  let cabecalhoNormalizado: string[] = [];
+  const indiceCabecalho = dadosJson.findIndex(row => {
+    cabecalhoNormalizado = row.map(normalizar);
+    return cabecalhoNormalizado.includes('MATRICULA') && cabecalhoNormalizado.includes('NOME');
+  });
 
   if (indiceCabecalho === -1) {
     console.error("[parsePlanilhaBanco] Erro: Cabeçalho não encontrado na aba BANCO.");
@@ -22,14 +30,13 @@ export function parsePlanilhaBanco(sheet: XLSX.WorkSheet): Map<string, Colaborad
   }
 
   // 2. Mapear as colunas a partir do cabeçalho
-  const cabecalho = dadosJson[indiceCabecalho];
   const colunas = {
-    matricula: cabecalho.indexOf('MATRICULA'),
-    nome: cabecalho.indexOf('NOME'),
-    cargo: cabecalho.indexOf('CARGO'),
-    idade: cabecalho.indexOf('IDADE'),
-    lider: cabecalho.indexOf('LIDER'),
-    dataAdmissao: cabecalho.indexOf('ADMISSÃO')
+    matricula: cabecalhoNormalizado.indexOf('MATRICULA'),
+    nome: cabecalhoNormalizado.indexOf('NOME'),
+    cargo: cabecalhoNormalizado.indexOf('CARGO'),
+    idade: cabecalhoNormalizado.indexOf('IDADE'),
+    lider: cabecalhoNormalizado.indexOf('LIDER'),
+    dataAdmissao: cabecalhoNormalizado.indexOf('ADMISSAO')
   };
 
   // 3. Iterar sobre as linhas de dados

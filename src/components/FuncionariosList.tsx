@@ -34,9 +34,10 @@ export const FuncionariosList = ({ funcionarios }: FuncionariosListProps) => {
       </div>
       
       <div className="grid gap-4">
-        {funcionarios.map((funcionario) => (
-          <FuncionarioCard key={funcionario.id} funcionario={funcionario} />
-        ))}
+        {funcionarios.map((funcionario: any, index: number) => {
+          const key = funcionario.matricula || funcionario.id || index;
+          return <FuncionarioCard key={key} funcionario={funcionario} />;
+        })}
       </div>
     </div>
   );

@@ -19,13 +19,13 @@ export const FileDropZone = ({
   onFileInput
 }: FileDropZoneProps) => {
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="w-full">
       <div
         className={`
-          relative border-2 border-dashed rounded-xl p-12 text-center transition-all duration-200
+          relative border-2 border-dashed rounded-[2rem] p-16 text-center transition-all duration-300 overflow-hidden
           ${isDragOver 
-            ? 'border-blue-400 bg-blue-50 scale-105' 
-            : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+            ? 'border-blue-400 bg-blue-50/50 scale-[1.02] shadow-xl shadow-blue-500/10' 
+            : 'border-slate-300/60 bg-white/40 hover:border-blue-300 hover:bg-white/60 hover:shadow-lg'
           }
         `}
         onDrop={onDrop}
@@ -37,27 +37,32 @@ export const FileDropZone = ({
           type="file"
           accept=".csv,.xlsx,.xls"
           onChange={onFileInput}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
         />
         
-        <div className="flex flex-col items-center gap-4">
+        <div className="flex flex-col items-center gap-6 relative z-0 pointer-events-none">
           <div className={`
-            w-16 h-16 rounded-full flex items-center justify-center transition-colors
-            ${isDragOver ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'}
+            w-20 h-20 rounded-2xl flex items-center justify-center transition-all duration-300
+            ${isDragOver 
+              ? 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-200 scale-110' 
+              : 'bg-white shadow-sm text-blue-500'
+            }
           `}>
-            <Upload className="w-8 h-8" />
+            <Upload className="w-8 h-8" strokeWidth={2.5} />
           </div>
           
-          <div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Envie sua planilha
+          <div className="space-y-2">
+            <h3 className="text-2xl font-bold text-slate-800">
+              Importar Dados de Frequência
             </h3>
-            <p className="text-gray-600 mb-4">
-              Arraste e solte o arquivo aqui ou clique para selecionar
+            <p className="text-slate-500 max-w-sm mx-auto leading-relaxed text-lg">
+              Arraste e solte seu arquivo aqui ou <span className="text-blue-600 font-semibold">clique para procurar</span>
             </p>
-            <p className="text-sm text-gray-500">
-              Formatos aceitos: CSV ou Excel (.xlsx, .xls)
-            </p>
+          </div>
+          
+          <div className="flex gap-3 mt-2">
+             <span className="px-3 py-1 bg-slate-100 text-slate-500 rounded-lg text-xs font-semibold uppercase tracking-wider">.XLSX</span>
+             <span className="px-3 py-1 bg-slate-100 text-slate-500 rounded-lg text-xs font-semibold uppercase tracking-wider">.CSV</span>
           </div>
         </div>
       </div>

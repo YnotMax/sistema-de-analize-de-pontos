@@ -4,7 +4,7 @@ import { StatsCard } from "./StatsCard";
 import { FuncionarioUnificado } from "@/utils/excel/types";
 
 interface StatsOverviewProps {
-  funcionarios: FuncionarioUnificado[];
+  funcionarios: any[];
 }
 
 export function StatsOverview({ funcionarios }: StatsOverviewProps) {

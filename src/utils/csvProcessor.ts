@@ -7,7 +7,6 @@ export const processarCSV = (textoCSV: string, filename: string): FuncionarioDat
   console.log('[csvProcessor] Iniciando processamento do CSV...');
   
   const resultado = Papa.parse(textoCSV, {
-    delimiter: ';',
     skipEmptyLines: true,
     dynamicTyping: false
   });
