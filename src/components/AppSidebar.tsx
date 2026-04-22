@@ -1,9 +1,9 @@
-import { LayoutDashboard, ArrowRightLeft, LogOut, Code2, Github, Linkedin, Instagram } from 'lucide-react';
+import { LayoutDashboard, ArrowRightLeft, LogOut, Code2, Github, Linkedin, Instagram, Activity } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 interface AppSidebarProps {
-  currentView?: 'dashboard' | 'compare';
-  onNavigate?: (view: 'dashboard' | 'compare') => void;
+  currentView?: 'dashboard' | 'compare' | 'absenteismo';
+  onNavigate?: (view: 'dashboard' | 'compare' | 'absenteismo') => void;
   hasData?: boolean;
 }
 
@@ -29,6 +29,12 @@ export const AppSidebar = ({ currentView = 'dashboard', onNavigate, hasData = fa
             active={currentView === 'compare'} 
             onClick={() => onNavigate?.('compare')}
             tooltip="Comparativo"
+          />
+          <NavItem 
+            icon={<Activity className="w-5 h-5" />} 
+            active={currentView === 'absenteismo'} 
+            onClick={() => onNavigate?.('absenteismo')}
+            tooltip="Taxa de Absenteísmo"
           />
         </nav>
       )}

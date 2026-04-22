@@ -5,6 +5,7 @@ import { ProcessingStatus } from '@/components/ProcessingStatus';
 import { AppSidebar } from '@/components/AppSidebar';
 import { PeriodSelector } from '@/components/PeriodSelector';
 import { ComparativeView } from '@/components/Compare/ComparativeView';
+import { AbsenteismoView } from '@/components/Compare/AbsenteismoView';
 import { usePontoProcessor } from '@/hooks/usePontoProcessor';
 
 export interface FuncionarioData {
@@ -18,7 +19,7 @@ export interface FuncionarioData {
 }
 
 const Index = () => {
-  const [currentView, setCurrentView] = useState<'dashboard' | 'compare'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'compare' | 'absenteismo'>('dashboard');
   const {
     funcionarios,
     funcionariosUnificados,
@@ -110,7 +111,7 @@ const Index = () => {
             
             {hasData && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-                {isMultiPeriod && currentView === 'dashboard' && (
+                {isMultiPeriod && (
                   <div className="mb-8">
                     <PeriodSelector
                       periodosDisponiveis={periodosDisponiveis}
@@ -121,15 +122,21 @@ const Index = () => {
                   </div>
                 )}
                 
-                {currentView === 'dashboard' ? (
+                {currentView === 'dashboard' && (
                   <Dashboard 
                     funcionarios={funcionarios} 
                     funcionariosUnificados={funcionariosUnificados}
                     fileName={fileName}
                     onReset={handleReset}
                   />
-                ) : (
+                )}
+                {currentView === 'compare' && (
                   <ComparativeView 
+                    funcionarios={funcionariosUnificados.length > 0 ? funcionariosUnificados : funcionarios} 
+                  />
+                )}
+                {currentView === 'absenteismo' && (
+                  <AbsenteismoView 
                     funcionarios={funcionariosUnificados.length > 0 ? funcionariosUnificados : funcionarios} 
                   />
                 )}
